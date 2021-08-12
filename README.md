@@ -1,1 +1,1 @@
-# simple-strcture-for-ML-project
+# simple-structure-for-ML-project
