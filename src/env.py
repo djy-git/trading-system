@@ -6,7 +6,7 @@
 ### Internal packages
 import sys
 import os
-from os.path import join, isdir, isfile, exists, basename, dirname, split
+from os.path import join, isdir, isfile, exists, basename, dirname, split, abspath
 import datetime
 import joblib
 import json
@@ -16,7 +16,6 @@ from time import time, sleep
 from collections import defaultdict
 from copy import deepcopy as copy
 from tqdm import tqdm
-from parse import parse, search
 
 
 ### External packages
@@ -24,19 +23,25 @@ import numpy as np
 import pandas as pd
 from tabulate import tabulate
 from numba import njit, cuda
-from switch import Switch
 from dask import delayed, compute
 from dask.distributed import Client
+from switch import Switch
+from parse import parse, search
+
 
 ## Plot packages
 import seaborn as sns
 import matplotlib.pyplot as plt
-plt.rc('font', family='DejaVu Sans')
-plt.rc('axes', unicode_minus=False)
+import cv2
+import PIL
+from PIL import Image
 
-## Matplotlib error handling
+
+## Matplotlib options
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
+plt.rc('font', family='DejaVu Sans')
+plt.rc('axes', unicode_minus=False)
 
 
 ### Set options
