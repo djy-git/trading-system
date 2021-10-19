@@ -25,6 +25,7 @@ from tabulate import tabulate
 from numba import njit, cuda
 from dask import delayed, compute
 from dask.distributed import Client
+from dask.diagnostics import ProgressBar
 from switch import Switch
 from parse import parse, search
 
