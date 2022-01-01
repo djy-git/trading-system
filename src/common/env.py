@@ -22,6 +22,7 @@ import joblib
 import json
 import re
 import logging
+import signal
 
 
 ### External packages
