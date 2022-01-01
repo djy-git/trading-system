@@ -23,6 +23,7 @@ import json
 import re
 import logging
 import signal
+import configparser
 
 
 ### External packages
@@ -72,6 +73,7 @@ class PATH:
     RESULT   = join(ROOT, 'result')
     LOG      = join(ROOT, 'log')
     LOG_FILE = join(LOG, f"{datetime.now(timezone('Asia/Seoul')).strftime('%y-%m-%d_%H-%M-%S')}.log")
+    INI_FILE = join(SRC, 'common', 'account.ini')
 
 
 ### Utility functions
@@ -79,6 +81,7 @@ class PATH:
 list_all   = lambda path: [(join(path, name), name) for name in sorted(os.listdir(path))]
 list_dirs  = lambda path: [(join(path, name), name) for name in sorted(os.listdir(path)) if isdir(join(path, name))]
 list_files = lambda path: [(join(path, name), name) for name in sorted(os.listdir(path)) if isfile(join(path, name))]
+
 
 ## Convertor
 def str2bool(s):
@@ -92,6 +95,11 @@ def str2bool(s):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 dt2str = lambda dt: dt.strftime('%Y-%m-%d')
 str2dt = lambda s: pd.to_datetime(s).date()
+def ini2dict(path, section):
+    config = configparser.ConfigParser()
+    config.read(path)
+    return dict(config[section])
+
 
 ## Manage directory
 def generate_dir(path):
@@ -100,6 +108,7 @@ def generate_dir(path):
 def remove_dir(path):
     if isdir(path):
         shutil.rmtree(path)
+
 
 ## Print dictionary or DataFrame
 def tprint(data):
