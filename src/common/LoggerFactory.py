@@ -1,15 +1,15 @@
 from common.env import *
 
 
-class LoggerFactory(MetaSingleton):
+class LoggerFactory(metaclass=MetaSingleton):
     @classmethod
     def get(cls):
         if not hasattr(cls, 'logger'):
             cls.logger = cls.generate()
         return cls.logger
 
-    @staticmethod
-    def generate():
+    @classmethod
+    def generate(cls):
         generate_dir(PATH.LOG)
 
         logger = logging.getLogger()
@@ -29,38 +29,29 @@ class LoggerFactory(MetaSingleton):
 
         logger.addHandler(stream_handler)
         logger.addHandler(file_handler)
+        sys.excepthook = lambda *args: logger.error('\nUncaught exception:', exc_info=args)
 
         return logger
+
+    # ### Option2: print() can be used for logging
+    # sys.stdout = cls.LogOut(PATH.LOG_FILE)
+    # class LogOut:
+    #     def __init__(self, log_path, stay_stdout=True):
+    #         self.logout = open(log_path, 'w')
+    #         self.outs = [self.logout, sys.stdout] if stay_stdout else [self.logout]
+    #
+    #     def __del__(self):
+    #         self.logout.close()
+    #
+    #     def write(self, msg):
+    #         for out in self.outs:
+    #             out.write(msg)
+    #
+    #     def flush(self): pass
+
 
 
 ##########################################################
 ### CAUTION! LOGGER is declared with global variable
 LOGGER = LoggerFactory.get()
 ##########################################################
-
-
-### Simple logger using print()
-# class Logger:
-#     class LogOut:
-#         def __init__(self, log_path, stay_stdout=True):
-#             self.logout = open(log_path, 'w')
-#             self.outs   = [self.logout, sys.stdout] if stay_stdout else [self.logout]
-#         def __del__(self):
-#             self.logout.close()
-#         def write(self, msg):
-#             for out in self.outs:
-#                 out.write(msg)
-#         def flush(self): pass
-#
-#     ## Level log
-#     level     = 1
-#     level_val = defaultdict(lambda: 1)
-#
-#
-#
-#     def __init__(self, log_dir_path):
-#         generate_dir(log_dir_path)
-#
-#         ## Append log file output to stdout
-#         log_path   = join(log_dir_path, f"{datetime.now(timezone('Asia/Seoul')).strftime('%y-%m-%d_%H-%M-%S')}.log")
-#         sys.stdout = self.LogOut(log_path)
