@@ -1,4 +1,4 @@
-# base-structure-for-ML-project
+# base-structure
 Machine learning project에 사용될 수 있는 기본 구조
 
 
