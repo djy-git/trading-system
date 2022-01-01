@@ -1,10 +1,8 @@
-### main.py ###################################
-# Main procedure is started in here
-###############################################
+from common.util import *
 
-
-from util import *
-
+@L
+def F():
+    LOGGER.info("Hello, world!")
 
 if __name__ == '__main__':
-    print("Hello, world!")
+    F()
