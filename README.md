@@ -12,7 +12,7 @@ ROOT
 │   └── 22-01-01_19-58-09.log
 ├── playground
 │   └── main.py
-└── src
+└── base_structure
     ├── common
     │   ├── DBHandler.py
     │   ├── LoggerFactory.py

@@ -1,7 +1,8 @@
-### env.py ####################################
-# Commonly used packages are defined in here
-###############################################
+"""**최하위 environment module**
 
+1. 일반적으로 사용되는 package와 함수, class가 정의되어 있음
+2. 이 module에서 project 내 다른 module, package를 import하면 안 됨 (최하위 module)
+"""
 
 ### Internal packages
 import sys
@@ -63,8 +64,22 @@ pd.set_option('display.width', 1000)
 
 ### PATH
 class PATH:
+    """Directory, file들에 대한 경로가 저장된 class
+
+    :cvar str ROOT: Project의 root directory의 경로
+    :cvar str SRC: Source code가 포함된 directory의 경로
+    :cvar str INPUT: Input data가 포함된 directory의 경로
+    :cvar str OUTPUT: Output data가 포함된 directory의 경로
+    :cvar str TRAIN: Train data가 포함된 directory의 경로
+    :cvar str Test: Test data가 포함된 directory의 경로
+    :cvar str CKPT: Checkpoint가 포함된 directory의 경로
+    :cvar str RESULT: 결과가 포함된 directory의 경로
+    :cvar str LOG: Log가 포함된 directory의 경로
+    :cvar str LOG_FILE: Log file의 경로
+    :cvar str INI_FILE: 비공개 ini file의 경로
+    """
     ROOT     = abspath(dirname(os.getcwd()))
-    SRC      = join(ROOT, 'src')
+    SRC      = join(ROOT, 'base_structure')
     INPUT    = join(ROOT, 'input')
     OUTPUT   = join(ROOT, 'output')
     TRAIN    = join(INPUT, 'train')
@@ -74,6 +89,13 @@ class PATH:
     LOG      = join(ROOT, 'log')
     LOG_FILE = join(LOG, f"{datetime.now(timezone('Asia/Seoul')).strftime('%y-%m-%d_%H-%M-%S')}.log")
     INI_FILE = join(SRC, 'common', 'account.ini')
+
+    @classmethod
+    def clean(cls):
+        """``OUTPUT`` , ``CKPT`` , ``RESULT`` , ``LOG`` directory를 제거
+        """
+        for path in [cls.OUTPUT, cls.CKPT, cls.RESULT, cls.LOG]:
+            remove_dir(path)
 
 
 ### Utility functions
@@ -110,15 +132,12 @@ def remove_dir(path):
         shutil.rmtree(path)
 
 
-## Print dictionary or DataFrame
-def tprint(data):
-    if isinstance(data, dict):
-        data = pd.DataFrame(data, index=['value']).T
-    print(tabulate(data, headers='keys', tablefmt='psql'))  # print DataFrame with fancy 'psql' form
-
-
 ### Singleton superclass
 class MetaSingleton(type):
+    """Singleton pattern을 위한 superclass
+
+    :cvar dict _instances: 독립적인 객체들
+    """
     _instances = {}
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
