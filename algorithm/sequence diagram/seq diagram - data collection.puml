@@ -5,10 +5,10 @@ mainframe **Command: Data collection**
 
 actor "Client(**Jenkins**)" as C
 boundary Interface as I
-entity CollectionEngine as CE
+entity Collector as CE
 
 box Independent #LightBlue
-entity "CollectionModel(Y, J, L)" as M
+entity "Engine(Y, J, L)" as M
 end box
 
 control DBHandler as DBH
@@ -17,7 +17,7 @@ database Database as DB
 C -> I ++: Collect data
     loop #transparent until stop signal from Client
         I -> CE ++: Run
-            CE -> M ++: Run
+            CE -> M ++: Collect data
                 M -> M ++: Collect data
                 deactivate
 

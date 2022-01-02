@@ -5,10 +5,10 @@ mainframe **Command: Invest**
 
 actor "Client(**Jenkins**)" as C
 boundary Interface as I
-entity InvestmentEngine as IE
+entity Investor as IE
 
 box Independent #LightBlue
-entity "InvestmentModel(Y, J, L)" as M
+entity "Engine(Y, J, L)" as M
 end box
 
 control DBHandler as DBH
@@ -17,7 +17,7 @@ database Database as DB
 C -> I ++: Invest
     loop #transparent until stop signal from Client
         I -> IE ++: Run
-            IE -> M ++: Run
+            IE -> M ++: Request action
                 M -> DBH ++: Request data
                     DBH -> DB ++: Request data
                         return Raw data
