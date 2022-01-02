@@ -42,29 +42,29 @@
     └── main.py
 ```
 
-## `algorithm`
+## 1. `algorithm`
 프로젝트 설계 및 알고리즘 관련 파일들이 포함된 directory
 
-## `docs`
+## 2. `docs`
 [sphinx](https://www.sphinx-doc.org/en/master/)를 이용한 문서화 관련 파일들이 포함된 directory
 
-## `setup.py`
+## 3. `setup.py`
 Package 배포에 필요한 setup file
 
-## `trading_system`
+## 4. `trading_system`
 Source code directory
 
-### `Collector`
+### 4.1 `Collector`
 데이터 수집 class
 
-### `Engine`
+### 4.2 `Engine`
 작업을 수행하는 알고리즘이 구현된 class
 
-### `Interface`
+### 4.3 `Interface`
 외부에서 각 module(`Collector`, `Investor` 등)에 접근하기 하는데 사용되는 interface class
 
-### `common`
+### 4.4 `common`
 Module들에서 자주 사용되는 module들을 모아놓은 package
 
-### `main.py`
+### 4.5 `main.py`
 프로그램의 시작지점
