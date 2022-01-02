@@ -4,7 +4,7 @@
 2. 이 module에서 project 내 다른 module, package를 import하면 안 됨 (최하위 module)
 """
 
-### Internal packages
+## Internal packages
 import sys
 import os
 from os.path import join, isdir, isfile, exists, basename, dirname, split, abspath
@@ -25,9 +25,10 @@ import re
 import logging
 import signal
 import configparser
+from abc import ABCMeta, abstractmethod
 
 
-### External packages
+## External packages
 import numpy as np
 import pandas as pd
 from tabulate import tabulate
@@ -47,14 +48,14 @@ import PIL
 from PIL import Image
 
 
-### Matplotlib options
+## Matplotlib options
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 plt.rc('font', family='DejaVu Sans')
 plt.rc('axes', unicode_minus=False)  # Remove warning (Glyps 8722)
 
 
-### Set options
+## Set options
 np.set_printoptions(suppress=True, precision=6, edgeitems=20, linewidth=1000)
 pd.set_option('display.max_rows', 1000)
 pd.set_option('display.max_columns', 100)
@@ -62,7 +63,7 @@ pd.set_option('display.max_colwidth', 1000)
 pd.set_option('display.width', 1000)
 
 
-### PATH
+## PATH
 class PATH:
     """Directory, file들에 대한 경로가 저장된 class
 
@@ -98,7 +99,7 @@ class PATH:
             remove_dir(path)
 
 
-### Utility functions
+## Utility functions
 ## lambda functions
 list_all   = lambda path: [(join(path, name), name) for name in sorted(os.listdir(path))]
 list_dirs  = lambda path: [(join(path, name), name) for name in sorted(os.listdir(path)) if isdir(join(path, name))]
@@ -132,7 +133,7 @@ def remove_dir(path):
         shutil.rmtree(path)
 
 
-### Singleton superclass
+## Singleton superclass
 class MetaSingleton(type):
     """Singleton pattern을 위한 superclass
 

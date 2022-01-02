@@ -5,18 +5,17 @@
 
 ----
 """
-
 from setuptools import find_packages, setup
 from setuptools import Command
 from subprocess import run
 
 
-### Long description is in 'README.md'
+## Long description is in 'README.md'
 with open("README.md", "r") as f:
     long_description = f.read()
 
 
-### Permitted commands
+## Permitted commands
 class MainCommand:
     user_options = []
     def initialize_options(self): pass
@@ -24,21 +23,18 @@ class MainCommand:
 
     @staticmethod
     def run_main(option):
-        run(["python", "main.py", f"--CMD {option}"], cwd="trading_system")
+        run(["python", "main.py", "--CMD", option], cwd='trading_system')
 
 
-class Run(MainCommand, Command):
-    description = "Run /trading_system/main.py --CMD run"
-    def run(self):
-        super().run_main('run')
-
-class Clean(MainCommand, Command):
-    description = "Run /trading_system/main.py --CMD clean"
-    def run(self):
-        super().run_main('clean')
+## Generate cmdclass running cmd
+def cmdclass_factory(cmd):
+    class CMD(MainCommand, Command):
+        description = f"Run /trading_system/main.py --CMD {cmd}"
+        def run(self): super().run_main(cmd)
+    return CMD
 
 
-### Setup summary
+## Setup summary
 setup(
     name="trading-system",
     version="0.0.1",
@@ -55,8 +51,5 @@ setup(
         # "Environment :: GPU :: NVIDIA CUDA :: 10.2",
     ],
     python_requires=">=3.8",
-    cmdclass={
-        "run"  : Run,
-        "clean": Clean,
-    }
+    cmdclass={cmd: cmdclass_factory(cmd) for cmd in ['collect', 'invest', 'clean']}
 )

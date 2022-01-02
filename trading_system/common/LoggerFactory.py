@@ -1,7 +1,7 @@
 """.. note:: **편의를 위해** ``LOGGER`` **가 전역 변수로 정의되어 있으므로 사용에 주의가 필요**
 """
 
-from trading_system.common.env import *
+from common.env import *
 
 
 class LoggerFactory(metaclass=MetaSingleton):
@@ -58,7 +58,7 @@ class LoggerFactory(metaclass=MetaSingleton):
 
         return logger
 
-    # ### Option2: print() can be used for logging
+    # ## Option2: print() can be used for logging
     # sys.stdout = cls.LogOut(PATH.LOG_FILE)
     # class LogOut:
     #     def __init__(self, log_path, stay_stdout=True):
@@ -77,6 +77,6 @@ class LoggerFactory(metaclass=MetaSingleton):
 
 
 ##########################################################
-### CAUTION! LOGGER is declared with global variable
+## CAUTION! LOGGER is declared with global variable
 LOGGER = LoggerFactory.get()
 ##########################################################

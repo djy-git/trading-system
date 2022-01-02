@@ -1,4 +1,4 @@
-from trading_system.common.LoggerFactory import *
+from common.LoggerFactory import *
 
 
 class Timer(ContextDecorator):

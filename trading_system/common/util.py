@@ -4,15 +4,15 @@
 2. ``common`` package 내부의 모든 module들을 import 하는 상위 module
 """
 
-from trading_system.common.env import *
-from trading_system.common.LoggerFactory import *
-from trading_system.common.Timer import *
-from trading_system.common.SignalHandler import *
-from trading_system.common.DBHandler import *
-from trading_system.common.config import *
+from common.env import *
+from common.LoggerFactory import *
+from common.Timer import *
+from common.SignalHandler import *
+from common.DBHandler import *
+from common.config import *
 
 
-### Register SIGINT
+## Register SIGINT
 SignalHandler.register_signal(signal.SIGINT)
 
 
