@@ -1,4 +1,4 @@
-from base_structure.common.LoggerFactory import *
+from trading_system.common.LoggerFactory import *
 
 
 class SignalHandler:

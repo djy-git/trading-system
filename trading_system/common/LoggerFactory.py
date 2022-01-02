@@ -1,7 +1,7 @@
 """.. note:: **편의를 위해** ``LOGGER`` **가 전역 변수로 정의되어 있으므로 사용에 주의가 필요**
 """
 
-from base_structure.common.env import *
+from trading_system.common.env import *
 
 
 class LoggerFactory(metaclass=MetaSingleton):

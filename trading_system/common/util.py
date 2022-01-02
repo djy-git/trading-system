@@ -4,12 +4,12 @@
 2. ``common`` package 내부의 모든 module들을 import 하는 상위 module
 """
 
-from base_structure.common.env import *
-from base_structure.common.LoggerFactory import *
-from base_structure.common.Timer import *
-from base_structure.common.SignalHandler import *
-from base_structure.common.DBHandler import *
-from base_structure.common.config import *
+from trading_system.common.env import *
+from trading_system.common.LoggerFactory import *
+from trading_system.common.Timer import *
+from trading_system.common.SignalHandler import *
+from trading_system.common.DBHandler import *
+from trading_system.common.config import *
 
 
 ### Register SIGINT

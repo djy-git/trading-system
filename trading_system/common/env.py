@@ -79,7 +79,7 @@ class PATH:
     :cvar str INI_FILE: 비공개 ini file의 경로
     """
     ROOT     = abspath(dirname(os.getcwd()))
-    SRC      = join(ROOT, 'base_structure')
+    SRC      = join(ROOT, 'trading_system')
     INPUT    = join(ROOT, 'input')
     OUTPUT   = join(ROOT, 'output')
     TRAIN    = join(INPUT, 'train')

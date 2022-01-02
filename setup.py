@@ -24,30 +24,30 @@ class MainCommand:
 
     @staticmethod
     def run_main(option):
-        run(["python", "main.py", f"--CMD {option}"], cwd="base_structure")
+        run(["python", "main.py", f"--CMD {option}"], cwd="trading_system")
 
 
 class Run(MainCommand, Command):
-    description = "Run /base_structure/main.py --CMD run"
+    description = "Run /trading_system/main.py --CMD run"
     def run(self):
         super().run_main('run')
 
 class Clean(MainCommand, Command):
-    description = "Run /base_structure/main.py --CMD clean"
+    description = "Run /trading_system/main.py --CMD clean"
     def run(self):
         super().run_main('clean')
 
 
 ### Setup summary
 setup(
-    name="Base project",
+    name="trading-system",
     version="0.0.1",
     author="Dongjin Yoon",
     author_email="djyoon0223@gmail.com",
-    description="Base project structure for ML project",
+    description="자동 매매 시스템",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/djy-git/base-strcture-for-ML-project",
+    url="https://github.com/djy-git/trading-system",
     packages=find_packages(),  # `requirements.txt` is preferred
     classifiers=[
         "Operating System :: POSIX :: Linux",

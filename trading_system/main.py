@@ -1,7 +1,7 @@
 """**`setup.py`에서 사용되는 main module**
 """
 
-from base_structure.common.util import *
+from trading_system.common.util import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--CMD', type=str, default='run')
