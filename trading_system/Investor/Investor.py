@@ -1,19 +1,20 @@
-from Engine import *
+from InvestorEngine import *
 
 
 class Investor:
     """투자를 수행하는 class
 
-    :param list engines: 사용될 Engine list
-    :param dict params: 수집 설정
+    :param dict params: 투자 설정
+    :ivar list engines: 사용될 InvestorEngine list
     """
-    def __init__(self, engines, params):
-        self.engines = engines
+    def __init__(self, params):
         self.params  = params
+        self.engines = self.load_engines(params)
+
 
     @L
     def run(self):
-        """각 :class:`trading_system.Engine` 별 취할 매매 action을 받아오고 최종적으로 투자를 수행
+        """각 :class:`trading_system.InvestorEngine` 별 취할 매매 action을 받아오고 최종적으로 투자를 수행
         """
         ## 1. 각 Engine별 매매 action 가져오기
         actions = self.get_actions()
@@ -28,9 +29,9 @@ class Investor:
 
     @L
     def get_actions(self):
-        """각 :class:`trading_system.Engine` 별 취할 매매 action을 받아오기
+        """각 :class:`trading_system.InvestorEngine` 별 취할 매매 action을 받아오기
 
-        :return: 각 :class:`trading_system.Engine` 별 취할 매매 action
+        :return: 각 :class:`trading_system.InvestorEngine` 별 취할 매매 action
         :rtype: tuple
         """
         tasks = [delayed(eng.get_action)() for eng in self.engines]
@@ -40,7 +41,7 @@ class Investor:
     def process_actions(self, actions):
         """actions를 최종 action으로 처리
 
-        :param tuple actions: 각 :class:`trading_system.Engine` 별 취할 매매 action tuple
+        :param tuple actions: 각 :class:`trading_system.InvestorEngine` 별 취할 매매 action tuple
         :return: 최종적으로 취할 매매 action
         :rtype: tuple
         """
@@ -55,3 +56,12 @@ class Investor:
         """
         ## 증권사 API 등을 이용하여 실제 투자 후 투자 결과를 반환
         raise NotImplementedError
+
+    @L
+    def load_engines(self, params):
+        """params['ENGINE']으로 지정된 Engine들을 로드
+
+        :return: 지정된 Engine들
+        :rtype: list
+        """
+        return [eval(f"Engine_{id}")(params) for id in list(params['ENGINE'])]

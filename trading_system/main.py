@@ -15,5 +15,5 @@ if __name__ == '__main__':
 
 
     ## 2. Generate interface
-    interface = Interface()
-    interface.run(params)
+    interface = Interface(params)
+    interface.run()

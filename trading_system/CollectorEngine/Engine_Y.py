@@ -1,4 +1,4 @@
-from Engine.Engine import *
+from CollectorEngine.Engine import *
 
 
 class Engine_Y(Engine):
@@ -12,9 +12,6 @@ class Engine_Y(Engine):
 
     def insert_into_db(self, data):
         ## 1. Connection을 각 함수에서 받아와야 process 병렬처리가 가능
-        self.conn = self.get_connection()
+        self.conn = get_connection()
 
         pass
-
-    def get_action(self):
-        return np.array([0, 0, 0, 0, 0])

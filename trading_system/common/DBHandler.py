@@ -56,3 +56,11 @@ class DBHandler:
         else:
             LOGGER.info(f"[Load existing connection] {conn_desc}")
         return self.conns[self.idx_info]
+
+
+def get_connection(ini_path=PATH.INI_FILE, section='DB'):
+    """``PATH.INI_FILE`` 을 기반으로 연결된 DB connection을 반환
+
+    :return: DB connection
+    """
+    return DBHandler(ini2dict(ini_path, section)).get_connection()
