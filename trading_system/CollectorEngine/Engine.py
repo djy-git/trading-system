@@ -15,11 +15,3 @@ class Engine(metaclass=ABCMeta):
         """데이터를 수집
         """
         pass
-
-    @abstractmethod
-    def insert_into_db(self, data):
-        """데이터를 DB에 삽입
-
-        :param dict data: 삽입할 데이터
-        """
-        pass

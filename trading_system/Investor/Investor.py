@@ -34,8 +34,8 @@ class Investor:
         :return: 각 :class:`trading_system.InvestorEngine` 별 취할 매매 action
         :rtype: tuple
         """
-        tasks = [delayed(eng.get_action)() for eng in self.engines]
-        return compute(*tasks, scheduler='processes')
+        for eng in self.engines:
+            eng.get_action()
 
     @L
     def process_actions(self, actions):

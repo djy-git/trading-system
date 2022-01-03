@@ -35,6 +35,7 @@ import pandas as pd
 from tabulate import tabulate
 from numba import njit, cuda
 from dask import delayed, compute
+from dask.diagnostics import ProgressBar
 from dask.distributed import Client
 from switch import Switch
 from parse import parse, search
