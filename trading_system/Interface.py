@@ -29,7 +29,7 @@ class Interface:
             if case.default:
                 raise ValueError(f"Unknown command: {args.CMD}")
 
-
+    @L
     def load_engines(self, params):
         """params['ENGINE']으로 지정된 Engine들을 로드
 
