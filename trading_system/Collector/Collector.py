@@ -1,4 +1,4 @@
-from CollectorEngine import *
+from common import *
 
 
 class Collector:
@@ -48,4 +48,5 @@ class Collector:
         :return: 지정된 Engine들
         :rtype: list
         """
-        return [eval(f"Engine_{id}")(params) for id in list(params['ENGINE'])]
+        classes = [getattr(import_module(f"CollectorEngine.Engine_{id}"), f"Engine_{id}") for id in params['ENGINE']]
+        return [cls(params) for cls in classes]

@@ -10,8 +10,11 @@ class Engine_Y(Engine):
     def collect_data(self):
         pass
 
+
     def insert_into_db(self, data):
         ## 1. Connection을 각 함수에서 받아와야 process 병렬처리가 가능
         self.conn = get_connection()
 
         pass
+
+
