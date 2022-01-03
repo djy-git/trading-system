@@ -1,26 +1,22 @@
-from Engine.Engine_Y import *
-from Engine.Engine_J import *
-from Engine.Engine_L import *
+from Engine import *
 
 
 class Investor:
     """투자를 수행하는 class
 
-    :param dict params: 투자 수행에 필요한 정보
+    :param list engines: 사용될 Engine list
+    :param dict params: 수집 설정
     """
-    def __init__(self, params):
-        self.params = params
+    def __init__(self, engines, params):
+        self.engines = engines
+        self.params  = params
 
+    @L
     def run(self):
         """각 :class:`trading_system.Engine` 별 취할 매매 action을 받아오고 최종적으로 투자를 수행
         """
-        ## 1. Load Engines
-        # engines = [Eng(self.params) for Eng in [Engine_Y, Engine_J, Engine_L]]
-        engines = [Eng(self.params) for Eng in [Engine_Y]]
-
-
-        ## 2. 각 Engine별 매매 action 가져오기
-        actions = self.get_actions(engines)
+        ## 1. 각 Engine별 매매 action 가져오기
+        actions = self.get_actions()
 
 
         ## 3. actions를 최종 action으로 처리
@@ -30,16 +26,17 @@ class Investor:
         ## 4. 투자 수행
         self.invest(final_action)
 
-    def get_actions(self, engines):
+    @L
+    def get_actions(self):
         """각 :class:`trading_system.Engine` 별 취할 매매 action을 받아오기
 
-        :param list engines: :class:`trading_system.Engine` list
         :return: 각 :class:`trading_system.Engine` 별 취할 매매 action
         :rtype: tuple
         """
-        tasks = [delayed(eng.get_action)() for eng in engines]
+        tasks = [delayed(eng.get_action)() for eng in self.engines]
         return compute(*tasks, scheduler='processes')
 
+    @L
     def process_actions(self, actions):
         """actions를 최종 action으로 처리
 
@@ -50,6 +47,7 @@ class Investor:
         ## Simple soft voting
         return np.mean(actions)
 
+    @L
     def invest(self, final_action):
         """투자 수행
 

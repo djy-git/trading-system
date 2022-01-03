@@ -131,6 +131,7 @@ def generate_dir(path):
 def remove_dir(path):
     if isdir(path):
         shutil.rmtree(path)
+        print(f"> {path} is removed")  # This message is not logged
 
 
 ## Singleton superclass

@@ -2,9 +2,10 @@
 """
 from Interface import *
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--CMD', type=str, default='collect')
-
+parser.add_argument('--ENGINE', type=str, default='Y')  # Y or J or L or YJL
 
 
 if __name__ == '__main__':

@@ -8,13 +8,19 @@ class Interface:
 
         :param dict params: 처리해야할 작업의 정보
         """
+
+        ## 1. Load engines
+        engines = self.load_engines(params)
+
+
+        ## 2. Run params['CMD']
         with Switch(params['CMD']) as case:
             if case('collect'):
-                collector = Collector(params)
+                collector = Collector(engines, params)
                 collector.run()
 
             if case('invest'):
-                investor = Investor(params)
+                investor = Investor(engines, params)
                 investor.run()
 
             if case('clean'):
@@ -22,3 +28,12 @@ class Interface:
 
             if case.default:
                 raise ValueError(f"Unknown command: {args.CMD}")
+
+
+    def load_engines(self, params):
+        """params['ENGINE']으로 지정된 Engine들을 로드
+
+        :return: 지정된 Engine들
+        :rtype: list
+        """
+        return [eval(f"Engine_{id}")(params) for id in list(params['ENGINE'])]
