@@ -34,9 +34,10 @@ class Investor:
         :return: 각 :class:`trading_system.InvestorEngine` 별 취할 매매 action
         :rtype: tuple
         """
+        actions = []
         for eng in self.engines:
-            eng.get_action()
-
+            actions.append(eng.get_action())
+        return actions
     @L
     def process_actions(self, actions):
         """actions를 최종 action으로 처리

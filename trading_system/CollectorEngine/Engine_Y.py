@@ -1,6 +1,7 @@
 from CollectorEngine.Engine import *
 import FinanceDataReader as fdr
 import pandas_datareader.data as web
+from pykrx.stock import get_market_cap
 
 
 class Engine_Y(Engine):
@@ -69,13 +70,11 @@ class Engine_Y(Engine):
 
 
     @L
-    def save_stock_data(self, market, start=None, end=None):
+    def save_stock_data(self, market):
         """[FinanceDataReader](https://financedata.github.io/posts/finance-data-reader-users-guide.html) 참고
         주가 일데이터 받아오고 저장하기
 
         :param str market: 시장
-        :param str start: 시작일
-        :param str end: 종료일
         """
         def get_price(symbol, start, end):
             try:
@@ -88,39 +87,46 @@ class Engine_Y(Engine):
         ## 1. ``market`` 상장된 종목명 가져오기
         df_info = fdr.StockListing(market)
         symbols = df_info.Symbol
-        
+
         ## 2. 데이터 가져오기
         with ProgressBar():
-            tasks = [delayed(get_price)(symbol, start=start, end=end) for symbol in symbols]
-            data  = pd.concat(compute(*tasks, scheduler='processes'))
-            assert len(data) > 0, "data is empty"
-        data.sort_values('date', inplace=True)
+            tasks = [delayed(get_price)(symbol, self.params['START_DATE'], self.params['END_DATE']) for symbol in symbols]
+            df_stock  = pd.concat(compute(*tasks, scheduler='processes'))
+            assert len(df_stock) > 0, "df_stock is empty"
+        # tasks = [delayed(get_price)(symbol, self.params['START_DATE'], self.params['END_DATE']) for symbol in symbols]
+        # df_stock  = pd.concat(compute(*tasks, scheduler='single-threaded'))
 
-        ## 3. DB에 저장
-        ## 3.1 ``df_info`` 저장
-        query = """
-                replace into stock_info_kr (symbol, market, name, sector, industry, listingdate, settlemonth, representative, homepage, region)
-                values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
-                """
-        to_sql(query, df_info)
+        df_stock.sort_values('date', inplace=True)
 
-        ## 3.2 ``data`` 저장
-        query = """
-                replace into stock_daily_kr (date, open, high, low, close, volume, `return`, symbol)
-                values (%s, %s, %s, %s, %s, %s, %s, %s)
-                """
-        to_sql(query, data)
+        ## 3. File로 저장 (TODO: update)
+        generate_dir(PATH.TRAIN)
+        df_info.reset_index(drop=True).to_feather(join(PATH.TRAIN, "stock_info_kr.ftr"))
+        df_stock.reset_index(drop=True).to_feather(join(PATH.TRAIN, "stock_daily_kr.ftr"))
+
+
+        # ## 3. DB에 저장
+        # ## 3.1 ``df_info`` 저장
+        # query = """
+        #         replace into stock_info_kr (symbol, market, name, sector, industry, listingdate, settlemonth, representative, homepage, region)
+        #         values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        #         """
+        # to_sql(query, df_info)
+        #
+        # ## 3.2 ``df_stock`` 저장
+        # query = """
+        #         replace into stock_daily_kr (date, open, high, low, close, volume, `return`, symbol)
+        #         values (%s, %s, %s, %s, %s, %s, %s, %s)
+        #         """
+        # to_sql(query, df_stock)
     @L
-    def save_index_data(self, names, symbols, start=None, end=None):
+    def save_index_data(self, names, symbols):
         """[FinanceDataReader](https://financedata.github.io/posts/finance-data-reader-users-guide.html) 참고
         지수 일데이터 받아오고 저장하기
 
         :param list names: 지수 이름 리스트
         :param list symbols: 종목코드 리스트
-        :param str start: 시작일
-        :param str end: 종료일
         """
-        def get_price(symbol, name, start, end):
+        def get_data(symbol, name, start, end):
             try:
                 data = self.download_data(symbol, start=start, end=end)
                 data['symbol'] = name
@@ -130,17 +136,21 @@ class Engine_Y(Engine):
 
         ## 1. 데이터 가져오기
         with ProgressBar():
-            tasks = [delayed(get_price)(symbol, name, start, end) for symbol, name in zip(symbols, names)]
-            data  = pd.concat(compute(*tasks, scheduler='processes'))
-            assert len(data) > 0, "data is empty"
-        data.sort_values('date', inplace=True)
-        
-        ## 2. DB에 저장
-        query = """
-                replace into index_daily_kr (date, open, high, low, close, volume, `return`, symbol)
-                values (%s, %s, %s, %s, %s, %s, %s, %s)
-                """
-        to_sql(query, data)
+            tasks = [delayed(get_data)(symbol, name, self.params['START_DATE'], self.params['END_DATE']) for symbol, name in zip(symbols, names)]
+            df_index  = pd.concat(compute(*tasks, scheduler='processes'))
+            assert len(df_index) > 0, "df_index is empty"
+        df_index.sort_values('date', inplace=True)
+
+        ## 2. File로 저장 (TODO: update)
+        df_index.reset_index(drop=True).to_feather(join(PATH.TRAIN, "index_daily_kr.ftr"))
+
+
+        # ## 2. DB에 저장
+        # query = """
+        #         replace into index_daily_kr (date, open, high, low, close, volume, `return`, symbol)
+        #         values (%s, %s, %s, %s, %s, %s, %s, %s)
+        #         """
+        # to_sql(query, df_index)
 
 
     def download_data(self, symbol, start, end):
@@ -151,19 +161,28 @@ class Engine_Y(Engine):
         :param str start: 시작일
         :param str end: 종료일
         """
+        ## 1. 주가 데이터
         try:
-            data = fdr.DataReader(symbol, start=start, end=end)
-        except Exception as e:
+            df_price = fdr.DataReader(symbol, start=start, end=end)
+        except:
             ## 지수의 경우 에러 발생
-            LOGGER.exception(e)
-            data = web.DataReader(f"^{symbol}", 'yahoo', start=start, end=end)
-            data['Change'] = data['Close'].pct_change()
+            df_price = web.DataReader(f"^{symbol}", 'yahoo', start=start, end=end)
+            df_price['Change'] = df_price['Close'].pct_change()
+        df_price = df_price.astype(np.float32)
+        df_price.rename(columns={'Change': 'Return'}, inplace=True)
+        df_price.reset_index(inplace=True)
+        df_price.columns = df_price.columns.str.lower()
+        df_price = df_price[['date', 'open', 'high', 'low', 'close', 'volume', 'return']]
+        
+        ## 2. 시가총액 등 데이터
+        df_caps = get_market_cap(start, end, symbol)
+        df_caps.rename(columns={'시가총액': 'cap', '거래대금': 'trading_value', '상장주식수': 'num_shares'}, inplace=True)
+        df_caps.index.name = 'date'
+        df_caps.reset_index(inplace=True)
+        df_caps = df_caps[['date', 'cap', 'trading_value', 'num_shares']]
 
-        data.rename(columns={'Change': 'Return'}, inplace=True)
-        data.reset_index(inplace=True)
-        data.columns = data.columns.str.lower()
-        data = data[['date', 'open', 'high', 'low', 'close', 'volume', 'return']]
-        return data
+        ## 3. 병합
+        return pd.merge(df_price, df_caps, how='inner', on='date')
 
 
     ### Deprecated
