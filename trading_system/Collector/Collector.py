@@ -14,14 +14,6 @@ class Collector:
 
     @L
     def run(self):
-        """각 :class:`trading_system.InvestorEngine` 별 필요한 데이터를 수집하고 DB에 입력
-        """
-        ## 1. 데이터 수집
-        self.collect()
-
-
-    @L
-    def collect(self):
         """
         각 :class:`trading_system.InvestorEngine` 별 필요한 데이터를 수집
 
@@ -30,6 +22,7 @@ class Collector:
         """
         for eng in self.engines:
             eng.collect_data()
+
 
     @L
     def load_engines(self, params):

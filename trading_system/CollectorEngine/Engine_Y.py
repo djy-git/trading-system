@@ -1,6 +1,6 @@
 from CollectorEngine.Engine import *
 import FinanceDataReader as fdr
-logging.getLogger('numexpr').setLevel(logging.WARNING)
+import pandas_datareader.data as web
 
 
 class Engine_Y(Engine):
@@ -15,58 +15,156 @@ class Engine_Y(Engine):
         1. 상장된 종목들의 일데이터를 가져오기
         """
         ## 1. 상장된 종목들의 일데이터를 가져오기
-        # TODO: country = 'NYSE'
-        for market in ['KRX']:
-            self.save_daily(market)
+        # TODO: country = 'us'
+        for country in ['kr']:
+            self.save_daily(country)
 
 
     @L
-    def save_daily(self, market):
+    def save_daily(self, country):
         """주가와 지수 데이터 저장하기
+
+        :param str country: 국호
         """
-        self.save_price_info(market, 'stock')
-        self.save_price_info(market, 'index')
+        ## 1. Save stock price
+        markets = self.get_markets(country)
+        for market in markets:
+            self.save_stock_data(market)
+
+        ## 2. Save index price
+        names, symbols = self.get_indexs(country)
+        self.save_index_data(names, symbols)
 
 
     @L
-    def save_price_info(self, market, data_id):
+    def get_markets(self, country):
+        """``country`` 국가의 시장들을 가져오기
+        
+        :param str country: 국호
         """
-        [FinanceDataReader](https://financedata.github.io/posts/finance-data-reader-users-guide.html) 참고
-        """
-        def task(symbol, start=None, end=None):
-            try: return fdr.DataReader(symbol, start=start, end=end)
-            except: return pd.DataFrame()
-
-
-        if data_id == 'stock':
-            ## 1. ``market`` 상장된 종목들의 일데이터를 가져오기
-            df_info = fdr.StockListing(market)
-            df_info.columns = map(lambda x: x.lower(), df_info.columns)
-            symbols = df_info.symbol
+        ## TODO: DB에서 가져오기
+        if country == 'kr':
+            markets = ['KRX']
+        elif country == 'us':
+            markets = ['NYSE', 'NASDAQ']
         else:
-            ## 2. 지수 일데이터를 가져오기
-            if market == 'KRX':
-                symbols = ['KS11', 'KQ11', 'KS50', 'KS100', 'KRX100', 'KS200']
-            else:
-                raise ValueError(market)
+            raise ValueError(country)
+        return markets
+    @L
+    def get_indexs(self, country):
+        """``country`` 국가의 지수 가져오기
 
+        :param str country: 국호
+        """
+        ## TODO: DB에서 가져오기
+        if country == 'kr':
+            names   = ['KOSPI', 'KOSDAQ', 'KOSPI50', 'KOSPI100', 'KRX100', 'KOSPI200']
+            symbols = ['KS11', 'KQ11', 'KS50', 'KS100', 'KRX100', 'KS200']
+        elif country == 'us':
+            names   = ['DowJones', 'NASDAQ', 'SP500', 'SP500_VIX']
+            symbols = ['DJI',      'IXIC',   'US500', 'VIX']
+        else:
+            raise ValueError(country)
+        return names, symbols
+
+
+    @L
+    def save_stock_data(self, market, start=None, end=None):
+        """[FinanceDataReader](https://financedata.github.io/posts/finance-data-reader-users-guide.html) 참고
+        주가 일데이터 받아오고 저장하기
+
+        :param str market: 시장
+        :param str start: 시작일
+        :param str end: 종료일
+        """
+        def get_price(symbol, start, end):
+            try:
+                data = self.download_data(symbol, start=start, end=end)
+                data['symbol'] = symbol
+                return data
+            except:
+                return pd.DataFrame()
+
+        ## 1. ``market`` 상장된 종목명 가져오기
+        df_info = fdr.StockListing(market)
+        symbols = df_info.Symbol
+        
+        ## 2. 데이터 가져오기
         with ProgressBar():
-            tasks = [delayed(task)(symbol) for symbol in symbols]
+            tasks = [delayed(get_price)(symbol, start=start, end=end) for symbol in symbols]
             data  = pd.concat(compute(*tasks, scheduler='processes'))
-        data.reset_index(inplace=True)
-        data.columns = map(lambda x: x.lower(), data.columns)
-
-        ## TODO: Check if nans exist
+            assert len(data) > 0, "data is empty"
+        data.sort_values('date', inplace=True)
 
         ## 3. DB에 저장
-        self.insert_into_db(data, market, data_id)
+        ## 3.1 ``df_info`` 저장
+        query = """
+                replace into stock_info_kr (symbol, market, name, sector, industry, listingdate, settlemonth, representative, homepage, region)
+                values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
+                """
+        to_sql(query, df_info)
 
-
+        ## 3.2 ``data`` 저장
+        query = """
+                replace into stock_daily_kr (date, open, high, low, close, volume, `return`, symbol)
+                values (%s, %s, %s, %s, %s, %s, %s, %s)
+                """
+        to_sql(query, data)
     @L
-    def insert_into_db(self, data, market, data_id):
-        """https://blog.naver.com/scyan2011/221963557539 참고
+    def save_index_data(self, names, symbols, start=None, end=None):
+        """[FinanceDataReader](https://financedata.github.io/posts/finance-data-reader-users-guide.html) 참고
+        지수 일데이터 받아오고 저장하기
+
+        :param list names: 지수 이름 리스트
+        :param list symbols: 종목코드 리스트
+        :param str start: 시작일
+        :param str end: 종료일
         """
-        raise NotImplementedError
+        def get_price(symbol, name, start, end):
+            try:
+                data = self.download_data(symbol, start=start, end=end)
+                data['symbol'] = name
+                return data
+            except:
+                return pd.DataFrame()
+
+        ## 1. 데이터 가져오기
+        with ProgressBar():
+            tasks = [delayed(get_price)(symbol, name, start, end) for symbol, name in zip(symbols, names)]
+            data  = pd.concat(compute(*tasks, scheduler='processes'))
+            assert len(data) > 0, "data is empty"
+        data.sort_values('date', inplace=True)
+        
+        ## 2. DB에 저장
+        query = """
+                replace into index_daily_kr (date, open, high, low, close, volume, `return`, symbol)
+                values (%s, %s, %s, %s, %s, %s, %s, %s)
+                """
+        to_sql(query, data)
+
+
+    def download_data(self, symbol, start, end):
+        """주가 일데이터 받아오기
+        FinanceDataReader, YahooFinance에서 데이터를 가져온다
+
+        :param str symbol: 종목코드
+        :param str start: 시작일
+        :param str end: 종료일
+        """
+        try:
+            data = fdr.DataReader(symbol, start=start, end=end)
+        except Exception as e:
+            ## 지수의 경우 에러 발생
+            LOGGER.exception(e)
+            data = web.DataReader(f"^{symbol}", 'yahoo', start=start, end=end)
+            data['Change'] = data['Close'].pct_change()
+
+        data.rename(columns={'Change': 'Return'}, inplace=True)
+        data.reset_index(inplace=True)
+        data.columns = data.columns.str.lower()
+        data = data[['date', 'open', 'high', 'low', 'close', 'volume', 'return']]
+        return data
+
 
     ### Deprecated
     # @L

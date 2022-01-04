@@ -96,3 +96,28 @@ def tprint(data):
     if isinstance(data, dict):
         data = pd.DataFrame(data, index=['value']).T
     LOGGER.info(tabulate(data, headers='keys', tablefmt='psql'))  # print DataFrame with fancy 'psql' format
+
+
+## Database user interface
+@L
+def read_sql(query, ini_path=PATH.INI_FILE):
+    """SQL 쿼리를 실행하여 결과를 반환
+
+    :param str query: 쿼리
+    :param str ini_path: ini file 경로, default: ``PATH.INI_FILE``
+    :return: 결과
+    :rtype: :class:`pandas.DataFrame`
+    """
+    return DBHandler(ini2dict(ini_path, 'DB')).read_sql(query)
+
+@L
+def to_sql(query, df, ini_path=PATH.INI_FILE):
+    """SQL 쿼리를 실행하여 DB에 데이터를 입력
+
+    :param str query: 쿼리
+    :param :class:`pandas.DataFrame` df: 입력할 데이터
+    :param str ini_path: ini file 경로, default: ``PATH.INI_FILE``
+    """
+    df             = df.where((pd.notnull(df)), None)
+    list_of_tuples = list(map(tuple, df.values))
+    DBHandler(ini2dict(ini_path, 'DB')).to_sql(query, list_of_tuples)

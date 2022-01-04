@@ -33,21 +33,21 @@ from importlib import import_module
 import numpy as np
 import pandas as pd
 from tabulate import tabulate
-from numba import njit, cuda
 from dask import delayed, compute
 from dask.diagnostics import ProgressBar
 from dask.distributed import Client
 from switch import Switch
 from parse import parse, search
 import pymysql
+# from numba import njit, cuda
 
 
 ## Plotting packages
 import seaborn as sns
 import matplotlib.pyplot as plt
-import cv2
 import PIL
 from PIL import Image
+# import cv2
 
 
 ## Matplotlib options

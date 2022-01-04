@@ -33,6 +33,7 @@ class DBHandler:
         self.db_info  = db_info
         self.db_info['port'] = int(self.db_info['port'])  # port should be int
         self.idx_info = self.db_infos.index(db_info)
+        self.conn     = self.get_connection()
     def __del__(self):
         """객체 소멸 시, 관리하고 있던 connection들을 모두 해제**
         """
@@ -56,11 +57,22 @@ class DBHandler:
         else:
             LOGGER.info(f"[Load existing connection] {conn_desc}")
         return self.conns[self.idx_info]
+    
+    def read_sql(self, query):
+        """SQL 쿼리를 실행하여 결과를 반환
+        
+        :param str query: 쿼리
+        :return: 결과
+        :rtype: :class:`pandas.DataFrame`
+        """
+        return pd.read_sql(query, self.conn)
 
+    def to_sql(self, query, values):
+        """SQL 쿼리를 실행하여 DB에 데이터를 입력
 
-def get_connection(ini_path=PATH.INI_FILE, section='DB'):
-    """``PATH.INI_FILE`` 을 기반으로 연결된 DB connection을 반환
-
-    :return: DB connection
-    """
-    return DBHandler(ini2dict(ini_path, section)).get_connection()
+        :param str query: 쿼리
+        :param list values: 입력할 데이터
+        """
+        with self.conn.cursor() as cursor:
+            cursor.executemany(query, values)
+        self.conn.commit()
