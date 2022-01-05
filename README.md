@@ -7,7 +7,7 @@
 ## 1. 데이터 수집 (local caching & DB insertion)
 $ python setup.py collect
 
-## 2. 투자 수행 (backtracking or real trading)
+## 2. 투자 수행 (backtesting or real trading)
 $ python setup.py trade
 ```
 
