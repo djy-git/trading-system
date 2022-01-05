@@ -86,7 +86,6 @@ def L(fn):
     return log
 
 
-
 def tprint(data):
     """Dictionary 혹은 DataFrame을 :func:`tabulate.tabulate` 를 이용하여 출력
 
@@ -109,7 +108,6 @@ def read_sql(query, ini_path=PATH.INI_FILE):
     :rtype: :class:`pandas.DataFrame`
     """
     return DBHandler(ini2dict(ini_path, 'DB')).read_sql(query)
-
 @L
 def to_sql(query, df, ini_path=PATH.INI_FILE):
     """SQL 쿼리를 실행하여 DB에 데이터를 입력
@@ -121,3 +119,13 @@ def to_sql(query, df, ini_path=PATH.INI_FILE):
     df             = df.where((pd.notnull(df)), None)
     list_of_tuples = list(map(tuple, df.values))
     DBHandler(ini2dict(ini_path, 'DB')).to_sql(query, list_of_tuples)
+
+
+## Parallel processing
+def exec_parallel(tasks, DEBUG, scheduler='processes'):
+    if DEBUG:
+        # return tuple([task.compute() for task in tqdm(tasks)])
+        return compute(*tasks, scheduler='single-threaded')
+    else:
+        with ProgressBar():
+            return compute(*tasks, scheduler=scheduler)

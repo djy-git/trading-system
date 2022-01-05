@@ -31,5 +31,5 @@ class Collector:
         :return: 지정된 Engine들
         :rtype: list
         """
-        classes = [getattr(import_module(f"CollectorEngine.Engine_{id}"), f"Engine_{id}") for id in params['ENGINE']]
+        classes = [getattr(import_module(f"CollectorEngine.Engine_{id}.Engine_{id}"), f"Engine_{id}") for id in params['ENGINE']]
         return [cls(params) for cls in classes]

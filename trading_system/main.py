@@ -16,6 +16,8 @@ parser.add_argument('--INVEST_METHOD', type=str, default='backtracking')
 
 parser.add_argument('--TIME_UNIT', type=str, default='day')
 parser.add_argument('--INVEST_STRATEGY_Y', type=str, default='momentum_cap_5')
+parser.add_argument('--DEBUG', type=str2bool, default=False)
+
 
 
 if __name__ == '__main__':
