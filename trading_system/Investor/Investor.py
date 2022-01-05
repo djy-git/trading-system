@@ -9,7 +9,7 @@ class Investor:
     """
     def __init__(self, params):
         self.params  = params
-        self.engines = self.load_engines(params)
+        self.engines = self.load_engines()
 
 
     @L
@@ -19,12 +19,10 @@ class Investor:
         ## 1. 각 Engine별 매매 action 가져오기
         actions = self.get_actions()
 
-
-        ## 3. actions를 최종 action으로 처리
+        ## 2. actions를 최종 action으로 처리
         final_action = self.process_actions(actions)
 
-
-        ## 4. 투자 수행
+        ## 3. 투자 수행
         self.invest(final_action)
 
     @L
@@ -32,38 +30,45 @@ class Investor:
         """각 :class:`trading_system.InvestorEngine` 별 취할 매매 action을 받아오기
 
         :return: 각 :class:`trading_system.InvestorEngine` 별 취할 매매 action
-        :rtype: tuple
+        :rtype: dict
         """
-        actions = []
-        for eng in self.engines:
-            actions.append(eng.get_action())
-        return actions
+        return {id: eng.get_action() for id, eng in self.engines.items()}
     @L
     def process_actions(self, actions):
         """actions를 최종 action으로 처리
 
-        :param tuple actions: 각 :class:`trading_system.InvestorEngine` 별 취할 매매 action tuple
+        :param dict actions: 각 :class:`trading_system.InvestorEngine` 별 취할 매매 action tuple
         :return: 최종적으로 취할 매매 action
-        :rtype: tuple
+        :rtype: dict
         """
-        ## Simple soft voting
-        return np.mean(actions)
+        if len(self.params['ENGINE']) == 1:
+            return actions[self.params['ENGINE']]
+        else:
+            ## ensemble
+            raise NotImplementedError
 
     @L
     def invest(self, final_action):
         """투자 수행
 
-        :param :class:`numpy.ndArray` final_action: 최종적으로 취할 매매 action
+        :param dict final_action: 취할 매매 action
         """
-        ## 증권사 API 등을 이용하여 실제 투자 후 투자 결과를 반환
-        raise NotImplementedError
+        with Switch(self.params['INVEST_METHOD']) as case:
+            if case('backtracking'):
+                pass
+
+            if case('fake_trading') or case('real_trading'):
+                ## 증권사 API 등을 이용하여 실제 투자 후 투자 결과를 반환
+                raise NotImplementedError
 
     @L
-    def load_engines(self, params):
-        """params['ENGINE']으로 지정된 Engine들을 로드
+    def load_engines(self):
+        """``engine`` 으로 지정된 Engine들을 로드
 
         :return: 지정된 Engine들
-        :rtype: list
+        :rtype: dict
         """
-        classes = [getattr(import_module(f"Engine.Engine_{id}.InvestorEngine_{id}"), f"InvestorEngine_{id}") for id in params['ENGINE']]
-        return [cls(params) for cls in classes]
+        return {
+            id: getattr(import_module(f"Engine.Engine_{id}.InvestorEngine_{id}"), f"InvestorEngine_{id}")(self.params)
+            for id in self.params['ENGINE']
+        }

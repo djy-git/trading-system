@@ -9,7 +9,7 @@ class Collector:
     """
     def __init__(self, params):
         self.params  = params
-        self.engines = self.load_engines(params)
+        self.engines = self.load_engines()
 
 
     @L
@@ -20,15 +20,18 @@ class Collector:
         :return: 수집된 데이터
         :rtype: :class:`pandas.DataFrame`
         """
-        for eng in self.engines:
+        for eng in self.engines.values():
             eng.collect_data()
 
 
-    def load_engines(self, params):
-        """params['ENGINE']으로 지정된 Engine들을 로드
+    @L
+    def load_engines(self):
+        """``engine`` 으로 지정된 Engine들을 로드
 
         :return: 지정된 Engine들
-        :rtype: list
+        :rtype: dict
         """
-        classes = [getattr(import_module(f"Engine.Engine_{id}.CollectorEngine_{id}"), f"CollectorEngine_{id}") for id in params['ENGINE']]
-        return [cls(params) for cls in classes]
+        return {
+            id: getattr(import_module(f"Engine.Engine_{id}.CollectorEngine_{id}"), f"CollectorEngine_{id}")(self.params)
+            for id in self.params['ENGINE']
+        }
