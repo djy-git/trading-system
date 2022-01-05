@@ -24,7 +24,6 @@ class Collector:
             eng.collect_data()
 
 
-    @L
     def load_engines(self, params):
         """params['ENGINE']으로 지정된 Engine들을 로드
 

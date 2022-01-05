@@ -1,7 +1,8 @@
-from InvestorEngine.Engine import *
+from Engine.InvestorEngine import *
+from Engine.Engine_Y.util import *
 
 
-class Engine_Y(Engine):
+class InvestorEngine_Y(InvestorEngine):
     """윤동진 엔진
     """
     def __init__(self, params):

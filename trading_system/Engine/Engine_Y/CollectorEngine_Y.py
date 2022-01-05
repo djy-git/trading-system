@@ -1,8 +1,8 @@
-from CollectorEngine.Engine import *
-from CollectorEngine.Engine_Y.util import *
+from Engine.CollectorEngine import *
+from Engine.Engine_Y.util import *
 
 
-class Engine_Y(Engine):
+class CollectorEngine_Y(CollectorEngine):
     """윤동진 엔진
     """
     def __init__(self, params):
@@ -18,6 +18,7 @@ class Engine_Y(Engine):
         # TODO: country = 'us'
         for country in ['kr']:
             self.save_daily(country)
+
 
     @L
     def save_daily(self, country):
@@ -37,6 +38,7 @@ class Engine_Y(Engine):
         """[FinanceDataReader](https://financedata.github.io/posts/finance-data-reader-users-guide.html) 참고
         주가 일데이터 받아오고 저장하기
 
+        :param str country: 국호
         :param str market: 시장
         """
         ## 1. ``market`` 상장된 종목명 가져오기
@@ -102,73 +104,3 @@ class Engine_Y(Engine):
                 values (%s, %s, %s, %s, %s, %s, %s, %s)
                 """
         to_sql(query, df_index)
-
-
-    ### Deprecated
-    # @L
-    # def get_daily_kr_price(self):
-    #     """KOSPI 일데이터 가져오기
-    #     """
-    #     ## 1. 한국거래소에서 종목코드 받아오기
-    #     df_stock_info = self.save_codes()
-    #
-    #     ## 2. 주가 받아오기
-    #     self.save_stock_daily(df_stock_info)
-    #
-    #
-    # @L
-    # def save_codes(self):
-    #     """
-    #     [https://ai-creator.tistory.com/51](https://ai-creator.tistory.com/51) 참조
-    #     해당 링크는 한국거래소에서 상장법인목록을 엑셀로 다운로드하는 링크입니다.
-    #     다운로드와 동시에 Pandas에 excel 파일이 load가 되는 구조입니다.
-    #
-    #     :return: 상장법인 코드 데이터프레임
-    #     :rtype: :class:`pandas.DataFrame`
-    #     """
-    #     stock_code = pd.read_html('http://kind.krx.co.kr/corpgeneral/corpList.do?method=download', header=0)[0]
-    #     stock_code.sort_values(['상장일'], ascending=True)
-    #     stock_code = stock_code[['회사명', '종목코드']]
-    #     stock_code = stock_code.rename(columns={'회사명': 'name', '종목코드': 'code'})
-    #     stock_code.code = stock_code.code.map('{:06d}'.format)
-    #     return stock_code
-    #
-    # @L
-    # def save_stock_daily(self, df_stock_info):
-    #     """
-    #     Naver finance에서 주가 데이터 받아오기
-    #
-    #     :param :class:`pandas.DataFrame` df_stock_info: 종목이름과 종목코드
-    #     :return: 종목들의 주가
-    #     :rtype: :class:`pandas.DataFrame`
-    #     """
-    #     with ProgressBar():
-    #         tasks = [delayed(self.get_stock_daily_code)(code) for code in df_stock_info.code]
-    #         data = pd.concat(compute(*tasks, scheduler='processes'), ignore_index=True)
-    #
-    #     data.dropna(inplace=True)
-    #     data = data.rename(columns={'날짜': 'date', '종가': 'close', '전일비': 'diff', '시가': 'open', '고가': 'high', '저가': 'low', '거래량': 'volume'})
-    #     data['volume'] = data['volume'].astype(int)
-    #     data.sort_values('date', ascending=True)
-    #     print(data)
-    #
-    #
-    # def get_stock_daily_code(self, code):
-    #     """``code`` 종목의 일데이터를 받아오기
-    #
-    #     :param str code: 종목코드
-    #     :return: 종목의 일데이터
-    #     :rtype: :class:`pandas.DataFrame`
-    #     """
-    #     data = pd.DataFrame()
-    #     page = 1
-    #     while True:
-    #         url    = f'http://finance.naver.com/item/sise_day.nhn?code={code}&page={page}'
-    #         header = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36'}
-    #         html   = pd.read_html(requests.get(url,headers=header).text, header=0)
-    #         data_pages = html[1].columns
-    #         if str(page) not in data_pages:
-    #             break
-    #         data = pd.concat((data, html[0]), ignore_index=True)
-    #         page += 1
-    #     return data

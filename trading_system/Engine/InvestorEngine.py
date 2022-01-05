@@ -1,7 +1,7 @@
 from common import *
 
 
-class Engine(metaclass=ABCMeta):
+class InvestorEngine(metaclass=ABCMeta):
     """InvestorEngine class(superclass)
     :class:`Engine_Y`, :class:`Engine_J`, :class:`Engine_L` 이 상속받아야 하는 class
 

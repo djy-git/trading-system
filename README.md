@@ -2,20 +2,20 @@
 데이터 수집부터 투자, 모니터링까지 자동화된 시스템을 구축하는 프로젝트
 
 
-# I. Structure
+# Ⅰ. 사용법
+```
+## 1. 데이터 수집 (local caching & DB insertion)
+$ python setup.py collect
+
+## 2. 투자 수행 (backtracking or real trading)
+$ python setup.py invest
+```
+
+# Ⅱ. Structure
 ```
 .
 ├── LICENSE
 ├── README.md
-├── algorithm
-│   ├── Database\ \355\205\214\354\235\264\353\270\224\ \354\240\225\354\235\230\354\204\234.xlsx
-│   ├── WBS.xlsx
-│   ├── sequence\ diagram
-│   │   ├── seq\ diagram\ -\ data\ collection.png
-│   │   ├── seq\ diagram\ -\ data\ collection.puml
-│   │   ├── seq\ diagram\ -\ invest.png
-│   │   └── seq\ diagram\ -\ invest.puml
-│   └── \355\224\204\353\241\234\354\240\235\355\212\270\ \354\204\244\352\263\204\353\217\204.pptx
 ├── docs
 │   └── README.md
 ├── setup.py
@@ -23,10 +23,14 @@
     ├── Collector
     │   └── Collector.py
     ├── Engine
-    │   ├── Engine.py
-    │   ├── Engine_J.py
-    │   ├── Engine_L.py
-    │   └── Engine_Y.py
+    │   ├── CollectorEngine.py
+    │   ├── Engine_J
+    │   ├── Engine_L
+    │   ├── Engine_Y
+    │   │   ├── CollectorEngine_Y.py
+    │   │   ├── Engine_Y.py
+    │   │   └── InvestorEngine_Y.py
+    │   └── InvestorEngine.py
     ├── Interface.py
     ├── Investor
     │   └── Investor.py
@@ -35,11 +39,13 @@
     │   ├── LoggerFactory.py
     │   ├── SignalHandler.py
     │   ├── Timer.py
-    │   ├── account.ini
+    │   ├── __init__.py
+    │   ├── account.ini (미포함)
     │   ├── config.py
     │   ├── env.py
     │   └── util.py
     └── main.py
+
 ```
 
 ## 1. `algorithm`
