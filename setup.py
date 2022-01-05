@@ -50,5 +50,5 @@ setup(
         # "Environment :: GPU :: NVIDIA CUDA :: 10.2",
     ],
     python_requires=">=3.8",
-    cmdclass={cmd: cmdclass_factory(cmd) for cmd in ['collect', 'invest', 'clean']}
+    cmdclass={cmd: cmdclass_factory(cmd) for cmd in ['collect', 'trade', 'clean']}
 )

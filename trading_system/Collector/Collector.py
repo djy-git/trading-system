@@ -15,7 +15,7 @@ class Collector:
     @L
     def run(self):
         """
-        각 :class:`trading_system.InvestorEngine` 별 필요한 데이터를 수집
+        각 :class:`trading_system.TraderEngine` 별 필요한 데이터를 수집
 
         :return: 수집된 데이터
         :rtype: :class:`pandas.DataFrame`

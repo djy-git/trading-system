@@ -1,11 +1,11 @@
 from common import *
 
 
-class Investor:
+class Trader:
     """투자를 수행하는 class
 
     :param dict params: 투자 설정
-    :ivar list engines: 사용될 InvestorEngine list
+    :ivar list engines: 사용될 TraderEngine list
     """
     def __init__(self, params):
         self.params  = params
@@ -14,7 +14,7 @@ class Investor:
 
     @L
     def run(self):
-        """각 :class:`trading_system.InvestorEngine` 별 취할 매매 action을 받아오고 최종적으로 투자를 수행
+        """각 :class:`trading_system.TraderEngine` 별 취할 매매 action을 받아오고 최종적으로 투자를 수행
         """
         ## 1. 각 Engine별 매매 action 가져오기
         actions = self.get_actions()
@@ -23,13 +23,13 @@ class Investor:
         final_action = self.process_actions(actions)
 
         ## 3. 투자 수행
-        self.invest(final_action)
+        self.trade(final_action)
 
     @L
     def get_actions(self):
-        """각 :class:`trading_system.InvestorEngine` 별 취할 매매 action을 받아오기
+        """각 :class:`trading_system.TraderEngine` 별 취할 매매 action을 받아오기
 
-        :return: 각 :class:`trading_system.InvestorEngine` 별 취할 매매 action
+        :return: 각 :class:`trading_system.TraderEngine` 별 취할 매매 action
         :rtype: dict
         """
         return {id: eng.get_action() for id, eng in self.engines.items()}
@@ -37,7 +37,7 @@ class Investor:
     def process_actions(self, actions):
         """actions를 최종 action으로 처리
 
-        :param dict actions: 각 :class:`trading_system.InvestorEngine` 별 취할 매매 action tuple
+        :param dict actions: 각 :class:`trading_system.TraderEngine` 별 취할 매매 action tuple
         :return: 최종적으로 취할 매매 action
         :rtype: dict
         """
@@ -48,12 +48,12 @@ class Investor:
             raise NotImplementedError
 
     @L
-    def invest(self, final_action):
+    def trade(self, final_action):
         """투자 수행
 
         :param dict final_action: 취할 매매 action
         """
-        with Switch(self.params['INVEST_METHOD']) as case:
+        with Switch(self.params['TRADE_METHOD']) as case:
             if case('backtracking'):
                 pass
 
@@ -69,6 +69,6 @@ class Investor:
         :rtype: dict
         """
         return {
-            id: getattr(import_module(f"Engine.Engine_{id}.InvestorEngine_{id}"), f"InvestorEngine_{id}")(self.params)
+            id: getattr(import_module(f"Engine.Engine_{id}.TraderEngine_{id}"), f"TraderEngine_{id}")(self.params)
             for id in self.params['ENGINE']
         }

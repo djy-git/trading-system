@@ -8,7 +8,7 @@
 $ python setup.py collect
 
 ## 2. 투자 수행 (backtracking or real trading)
-$ python setup.py invest
+$ python setup.py trade
 ```
 
 # Ⅱ. Structure
@@ -29,11 +29,11 @@ $ python setup.py invest
     │   ├── Engine_Y
     │   │   ├── CollectorEngine_Y.py
     │   │   ├── Engine_Y.py
-    │   │   └── InvestorEngine_Y.py
-    │   └── InvestorEngine.py
+    │   │   └── TraderEngine_Y.py
+    │   └── TraderEngine.py
     ├── Interface.py
-    ├── Investor
-    │   └── Investor.py
+    ├── Trader
+    │   └── Trader.py
     ├── common
     │   ├── DBHandler.py
     │   ├── LoggerFactory.py
@@ -66,11 +66,14 @@ Source code directory
 ### 4.2 `Engine`
 작업을 수행하는 알고리즘이 구현된 class
 
-### 4.3 `Interface`
-외부에서 각 module(`Collector`, `Investor` 등)에 접근하기 하는데 사용되는 interface class
+### 4.3 `Trader`
+투자를 수행하는 class
 
-### 4.4 `common`
+### 4.4 `Interface`
+외부에서 각 module(`Collector`, `Trader` 등)에 접근하기 하는데 사용되는 interface class
+
+### 4.5 `common`
 Module들에서 자주 사용되는 module들을 모아놓은 package
 
-### 4.5 `main.py`
+### 4.6 `main.py`
 프로그램의 시작지점
