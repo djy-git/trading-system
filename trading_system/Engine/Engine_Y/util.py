@@ -39,27 +39,28 @@ def get_indexs(country):
     else:
         raise ValueError(country)
     return names, symbols
-def get_name(symbol):
+def symbol2name(symbol):
     """종목코드를 이름으로 변환
 
     :param str symbol: 종목코드
     :return: 종목이름
     :rtype: str
     """
-    ## 1. Yahoo finance
-    ## TODO: 해외 종목 호환성
-    for yticker in [f'{symbol}.KS', f'^{symbol}', symbol]:
-        try:
-            return yf.Ticker(yticker).info['longName']
-        except:
-            pass
-
-    ## 2. KRX
+    ## 1. KRX
     for get_name in [kstock.get_market_ticker_name, kstock.get_index_ticker_name, kstock.get_etf_ticker_name, kstock.get_etn_ticker_name, kstock.get_elw_ticker_name]:
         try:
             name = get_name(symbol)
             if isinstance(name, str):
                 return name
+        except:
+            pass
+
+    ## 2. Yahoo finance
+    ## TODO: 너무 느려!
+    ##       해외 종목 호환성
+    for yticker in [f'{symbol}.KS', f'^{symbol}', symbol]:
+        try:
+            return yf.Ticker(yticker).info['longName']
         except:
             pass
 
@@ -83,10 +84,10 @@ def download_price(symbol, start, end):
     if len(df_price) == 0:  # TODO: check (지수의 경우 에러 발생 가능)
         df_price = web.DataReader(f"^{symbol}", 'yahoo', start=start, end=end)
         df_price['Change'] = df_price['Close'].pct_change()
-    assert len(df_price) > 0, f"df_price of {symbol}({get_name(symbol)}) is empty"
+    assert len(df_price) > 0, f"df_price of {symbol}({symbol2name(symbol)}) is empty"
 
-    df_price.columns = df_price.columns.str.lower()
     df_price = df_price.astype(np.float32)
+    df_price.columns = df_price.columns.str.lower()
     df_price.rename(columns={'change': 'return'}, inplace=True)
     df_price.reset_index(inplace=True)
     df_price.columns = df_price.columns.str.lower()
@@ -96,22 +97,23 @@ def download_price(symbol, start, end):
     ## 2. 시가총액 등 데이터 (TODO: us)
     LOGGER.setLevel(logging.WARNING)  # kstock.get_market_cap() logs error with info()
     df_caps = kstock.get_market_cap(start, end, symbol)
-    name = get_name(symbol)
+    name = symbol2name(symbol)
     LOGGER.setLevel(logging.INFO)
     if len(df_caps) == 0:
         LOGGER.info(f"\ndf_caps of {symbol}({name}) is empty")  # ETF 종목은 없음
         df_caps = pd.DataFrame({'시가총액': None, '거래대금': None, '상장주식수': None}, index=df_price.date)
-    df_caps.rename(columns={'시가총액': 'cap', '거래대금': 'trading_value', '상장주식수': 'num_shares'}, inplace=True)
     df_caps.index.name = 'date'
+    df_caps.rename(columns={'시가총액': 'cap', '거래대금': 'trading_value', '상장주식수': 'num_shares'}, inplace=True)
     df_caps.reset_index(inplace=True)
     df_caps = df_caps[['date', 'cap', 'trading_value', 'num_shares']]
-
 
     ## 3. 병합
     df_merge = pd.merge(df_price, df_caps, how='inner', on='date')
 
+    ## 4. return: nan row 제거
+    df_merge.dropna(subset=['return'], inplace=True)
 
-    ## 4. 종목코드 추가
+    ## 5. 종목코드 추가
     df_merge['symbol'] = symbol
 
     return df_merge
@@ -123,6 +125,34 @@ def download_stock_info(market):
     :rtype: pandas.DataFrame
     """
     df_info = fdr.StockListing(market)
+    assert len(df_info) > 0, "df_info is empty"
+
+    df_info = df_info.astype(str)
     df_info.columns = df_info.columns.str.lower()
     df_info['update_date'] = datetime.now().strftime("%Y-%m-%d")
     return df_info
+
+
+## To feather file
+def unite_none(df):
+    """결측값을 None으로 통일
+
+    :param :class:`pandas.DataFrame` df: 제거할 DataFrame
+    :return: 제거한 DataFrame
+    :rtype: :class:`pandas.DataFrame`
+    """
+    return df.where((pd.notnull(df)), None)
+def to_feather(data, path):
+    """``data`` 를 feather file로 저장
+    
+    :param DataFrame data: 저장할 데이터
+    :param str path: 저장할 경로
+    """
+    ## 1. None값 단일화
+    data = unite_none(data)
+
+    ## 2. Serialize index
+    data.reset_index(drop=True, inplace=True)
+
+    ## 3. Save
+    data.to_feather(path)

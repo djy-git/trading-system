@@ -48,29 +48,27 @@ class CollectorEngine_Y(CollectorEngine):
         def get_price(symbol, start, end):
             try: return download_price(symbol, start=start, end=end)
             except: return pd.DataFrame()
-        tasks    = [delayed(get_price)(symbol, self.params['START_DATE'], self.params['END_DATE']) for symbol in df_info.symbol]
-        df_stock = pd.concat(exec_parallel(tasks, self.params['DEBUG']))
-        df_stock.sort_values('date', inplace=True)
+        tasks    = [delayed(get_price)(symbol, self.params['START_DATE'], self.params['END_DATE']) for symbol in df_info.symbol[:20]]
+        df_stock = pd.concat(exec_parallel(tasks, self.params['DEBUG'])).sort_values('date')
 
-        ## 3. File로 저장
+        ## 3. File, DB에 저장
         table_info  = f"stock_info_{country}"
         table_daily = f"stock_daily_{country}"
-        df_info.reset_index(drop=True).to_feather(join(PATH.TRAIN, f"{table_info}.ftr"))
-        df_stock.reset_index(drop=True).to_feather(join(PATH.TRAIN, f"{table_daily}.ftr"))
 
-        ## 4. DB에 저장
-        ## 4.1 ``df_info`` 저장
+        ## 3.1 ``df_info`` 저장
         query = f"""
                 replace into {table_info} (symbol, market, name, sector, industry, listingdate, settlemonth, representative, homepage, region, update_date)
                 values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
+        to_feather(df_info, join(PATH.TRAIN, f"{table_info}.ftr"))
         to_sql(query, df_info)
 
-        ## 4.2 ``df_stock`` 저장
+        ## 3.2 ``df_stock`` 저장
         query = f"""
                 replace into {table_daily} (date, open, high, low, close, volume, `return`, `cap`, trading_value, num_shares, symbol)
                 values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
+        to_feather(df_stock, join(PATH.TRAIN, f"{table_daily}.ftr"))
         to_sql(query, df_stock)
     @L
     def save_index_data(self, country, names, symbols):
@@ -91,16 +89,14 @@ class CollectorEngine_Y(CollectorEngine):
             except:
                 return pd.DataFrame()
         tasks    = [delayed(get_data)(symbol, name, self.params['START_DATE'], self.params['END_DATE']) for symbol, name in zip(symbols, names)]
-        df_index = pd.concat(exec_parallel(tasks, self.params['DEBUG']))
-        df_index.sort_values('date', inplace=True)
+        df_index = pd.concat(exec_parallel(tasks, self.params['DEBUG'])).sort_values('date')
 
-        ## 2. File로 저장
+        ## 2. File, DB에 저장
         table_daily = f"index_daily_{country}"
-        df_index.reset_index(drop=True).to_feather(join(PATH.TRAIN, f"{table_daily}.ftr"))
 
-        ## 3. DB에 저장
         query = f"""
                 replace into {table_daily} (date, open, high, low, close, volume, `return`, symbol)
                 values (%s, %s, %s, %s, %s, %s, %s, %s)
                 """
+        to_feather(df_index, join(PATH.TRAIN, f"{table_daily}.ftr"))
         to_sql(query, df_index)

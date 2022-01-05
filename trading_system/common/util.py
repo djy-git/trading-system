@@ -116,7 +116,6 @@ def to_sql(query, df, ini_path=PATH.INI_FILE):
     :param :class:`pandas.DataFrame` df: 입력할 데이터
     :param str ini_path: ini file 경로, default: ``PATH.INI_FILE``
     """
-    df             = df.where((pd.notnull(df)), None)
     list_of_tuples = list(map(tuple, df.values))
     DBHandler(ini2dict(ini_path, 'DB')).to_sql(query, list_of_tuples)
 
