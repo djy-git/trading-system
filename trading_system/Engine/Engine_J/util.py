@@ -5,7 +5,7 @@ import re
 from datetime import datetime
 import os
 
-code_str_list = ["samsung%20electronic"]
+
 
 '''
 원하는 종목과 관련된 기사 url 크롤링
@@ -33,4 +33,13 @@ def get_new(news_url):
     news = soup.find_all('div', {'class': 'view_mid_div'})
     return
 
+'''
+test 구간
+'''
 
+code_str_list = ["samsung%20electronic"]
+for code_str in code_str_list:
+    url_list, subject_list = get_url_list(code_str)
+'''
+test 구간 해제
+'''
