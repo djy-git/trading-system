@@ -2,7 +2,6 @@
 
 1. 하위 module들을 사용하는 utility 함수 혹은 class를 정의
 2. ``common`` package 내부의 모든 module들을 import 하는 상위 module
-3. TEST
 """
 
 from common.Timer import *
