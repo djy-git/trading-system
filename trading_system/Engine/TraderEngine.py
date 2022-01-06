@@ -1,8 +1,8 @@
 from common import *
 
 
-class InvestorEngine(metaclass=ABCMeta):
-    """InvestorEngine class(superclass)
+class TraderEngine(metaclass=ABCMeta):
+    """TraderEngine class(superclass)
     :class:`Engine_Y`, :class:`Engine_J`, :class:`Engine_L` 이 상속받아야 하는 class
 
     :param dict params: Parameter

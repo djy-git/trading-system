@@ -1,5 +1,4 @@
-from common import *
-
+from Trader.util import *
 import pandas_datareader.data as web
 import FinanceDataReader as fdr
 import pykrx.stock as kstock
@@ -131,28 +130,3 @@ def download_stock_info(market):
     df_info.columns = df_info.columns.str.lower()
     df_info['update_date'] = datetime.now().strftime("%Y-%m-%d")
     return df_info
-
-
-## To feather file
-def unite_none(df):
-    """결측값을 None으로 통일
-
-    :param :class:`pandas.DataFrame` df: 제거할 DataFrame
-    :return: 제거한 DataFrame
-    :rtype: :class:`pandas.DataFrame`
-    """
-    return df.where((pd.notnull(df)), None)
-def to_feather(data, path):
-    """``data`` 를 feather file로 저장
-    
-    :param DataFrame data: 저장할 데이터
-    :param str path: 저장할 경로
-    """
-    ## 1. None값 단일화
-    data = unite_none(data)
-
-    ## 2. Serialize index
-    data.reset_index(drop=True, inplace=True)
-
-    ## 3. Save
-    data.to_feather(path)

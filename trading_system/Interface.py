@@ -1,5 +1,5 @@
 from Collector.Collector import *
-from Investor.Investor import *
+from Trader.Trader import *
 
 
 class Interface:
@@ -19,9 +19,9 @@ class Interface:
                 collector = Collector(self.params)
                 collector.run()
 
-            if case('invest'):
-                investor = Investor(self.params)
-                investor.run()
+            if case('trade'):
+                trader = Trader(self.params)
+                trader.run()
 
             if case('clean'):
                 PATH.clean()
