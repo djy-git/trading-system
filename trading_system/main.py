@@ -6,10 +6,8 @@ from Interface import *
 parser = argparse.ArgumentParser()
 
 ## 1. 수행 작업
-parser.add_argument('--CMD', type=str, default='collect')
+parser.add_argument('--CMD', type=str, default='trade')
 parser.add_argument('--DEBUG', type=str2bool, default=False)
-parser.add_argument('--TRADE_METHOD', type=str, default='backtesting')
-                    # description='Options: [backtesting, fake_trading, real_trading]')
 
 
 ## 2. 데이터
@@ -31,6 +29,12 @@ parser.add_argument('--ENGINE', type=str, default='Y')
 ## 3.2.1 Y엔진
 ## 3.2.1.1 투자 알고리즘
 parser.add_argument('--Y_ALGORITHM', type=str, default='momentum_cap_5')
+
+
+## 4. 거래 설정
+parser.add_argument('--TRADE_METHOD', type=str, default='backtesting')
+                    # description='Options: [backtesting, fake_trading, real_trading]')
+parser.add_argument('--BALANCE', type=int, default=10_000_000)
 
 
 if __name__ == '__main__':
