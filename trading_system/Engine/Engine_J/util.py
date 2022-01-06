@@ -37,7 +37,7 @@ GPU 학습시에 torch에서 CUDA 설정이 필요함!!
 종목코드, 코드 검색 이름 가져오기
 '''
 def get_code_code_str():
-    with open('code_str_list.json', 'r') as f:
+    with open('../code_str_list.json', 'r') as f:
         json_data = json.load(f)
         return list(json_data.keys()), list(json_data.values())
     return None
@@ -148,7 +148,6 @@ def train_model(train_dataloader, epochs= 1):
 
             # Forward 수행
             outputs = model(b_input_ids, labels=b_labels)
-            print(outputs)
             # 로스 구함
             loss = outputs[0]
 
@@ -185,7 +184,7 @@ def get_label(code, number):
     today = datetime.today()
     yesterday = today - timedelta(days=1)
     price = download_price(code, yesterday.strftime("%Y%m%d"), today.strftime("%Y%m%d"))
-    print(price)
+    #print(price)
     if price['close'].values[1]>price['close'].values[0]:
         label = [1 for i in range(number)]
     else:
