@@ -1,4 +1,5 @@
 from Engine.Engine_Y.util import *
+from Trader.util import *
 
 
 class Backtester:
@@ -13,30 +14,23 @@ class Backtester:
     @L
     def run(self):
         """Backtesting 실행"""
-        ## 1. 데이터 가져오기
-        ## 1.1 전체 데이터 선택
-        datas = get_raw_datas(self.params)
-        
-        ## 1.2 벤치마크 데이터 선택
-        base_data = self.get_benchmark_data(datas, 'KOSPI200')
+        ## 1. 벤치마크 데이터 가져오기
+        base_data = self.get_benchmark_data('KOSPI200')
 
-        ## 1.3 투자 진행
-        self.trade(datas, base_data)
+        ## 2. 투자 진행
+        self.trade(base_data)
 
     @L
-    def trade(self, datas, base_data):
+    def trade(self, base_data):
         """투자 수행
         
-        :param dict datas: 벤치마크 데이터
+        :param dict base_data: 벤치마크 데이터
         :param pd.DataFrame base_data: 벤치마크 데이터
         """
-        ## 1. Figure 생성
-        fig, ax = plt.subplots(figsize=(20, 10))
-
-
-        ## 2. 시간에 따라 투자 진행
+        ## 1. 시간에 따라 투자 진행
         for date in base_data.index:
-            print(date)
+            portfolios = self.get_portfolios(dt2str(date))
+
 
 
         # ## 1. 각 Engine별 매매 action 가져오기
@@ -48,7 +42,7 @@ class Backtester:
         # ## 3. 투자 수행
         # self.trade(final_action)
 
-    def get_benchmark_data(self, datas, symbol):
+    def get_benchmark_data(self, symbol):
         """벤치마크 데이터 가져오기
 
         :param dict datas: raw data
@@ -56,6 +50,7 @@ class Backtester:
         :return: 데이터
         :rtype: pandas.DataFrame
         """
+        datas = get_raw_datas(self.params)
         for key in ['stock', 'index']:
             if symbol in list(datas[key].symbol):
                 ## 1. 데이터 선택
@@ -73,20 +68,22 @@ class Backtester:
         :rtype: dict
         """
         return {
-            id: getattr(import_module(f"Engine.Engine_{id}.TraderEngine_{id}"), f"TraderEngine_{id}")(self.params)
+            id: getattr(import_module(f"Engine.Engine_{id}.TraderEngine.TraderEngine"), "TraderEngine")(self.params)
             for id in self.params['ENGINE']
         }
 
     #################################
 
-    # @L
-    # def get_actions(self):
-    #     """각 :class:`trading_system.TraderEngine` 별 취할 매매 action을 받아오기
-    #
-    #     :return: 각 :class:`trading_system.TraderEngine` 별 취할 매매 action
-    #     :rtype: dict
-    #     """
-    #     return {id: eng.get_action() for id, eng in self.engines.items()}
+    @L
+    def get_portfolios(self, date):
+        """각 :class:`trading_system.TraderEngine` 별 취할 매매 action을 받아오기
+
+        :param str date: 거래 날짜
+        :return: 각 :class:`trading_system.TraderEngine` 별 취할 매매 action
+        :rtype: dict
+        """
+        return {id: eng.get_portfolio(date) for id, eng in self.engines.items()}
+
     # @L
     # def process_actions(self, actions):
     #     """actions를 최종 action으로 처리
