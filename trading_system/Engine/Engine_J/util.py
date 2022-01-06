@@ -1,3 +1,5 @@
+import numpy as np
+
 from common import *
 
 import requests
@@ -89,7 +91,7 @@ def get_tokenize(sentence, method='CLS'):
     tokenized_texts = tokenizer.tokenize(sent)
     return tokenized_texts
 
-def get_embedding_token(tokenized_text, MAX_LEN = 128):
+def get_embedding_token(tokenized_text):
     # pre-train된 토큰화 모델을 불러온다.
     # Q : 이전에 위에서 토크나이즈를 수행한 결과를 가진 토큰 객체를 사용해야 하는가? 여기서 새로 정의해서 수행해도 되는가?
     tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased', do_lower_case=False)  # truncation=True, padding=True
@@ -97,13 +99,16 @@ def get_embedding_token(tokenized_text, MAX_LEN = 128):
     # 토큰을 숫자 인덱스로 변환
     input_id = tokenizer.convert_tokens_to_ids(tokenized_text)
 
-    #성능에 영향을 미칠 수 있는 요인
-    # 문장을 MAX_LEN 길이에 맞게 자르고, 모자란 부분을 패딩 0으로 채움 -> 이부분이 필요한가? Bert는 길이에 종속 안되지 않나?
-    #input_id = pad_sequences(input_id, maxlen=MAX_LEN, dtype="long", truncating="post", padding="post")
 
     # 어텐션 마스크 초기화 -> 이것도 일단은 생략!
     return input_id
 
+def match_sent_size(sent, MAX_LEN = 32):
+    # 성능에 영향을 미칠 수 있는 요인
+    # 문장을 MAX_LEN 길이에 맞게 자르고, 모자란 부분을 패딩 0으로 채움 -> 이부분이 필요한가? Bert는 길이에 종속 안되지 않나?
+    # Tensor변환 과정에서 입력 모양을 맞춰줘야해서 일단 추가함!
+    sent = pad_sequences(sent, maxlen=MAX_LEN, dtype="long", truncating="post", padding="post")
+    return sent
 
 # target_code : https://colab.research.google.com/drive/1tIf0Ugdqg4qT7gcxia3tL7und64Rv1dP#scrollTo=muU2kS2GCh4y
 def train_model(train_dataloader, epochs= 1):
@@ -139,11 +144,11 @@ def train_model(train_dataloader, epochs= 1):
         # 데이터로더에서 배치만큼 반복하여 가져옴
         for step, batch in enumerate(train_dataloader):
             # 배치에서 데이터 추출
-            b_input_ids, b_input_mask, b_labels = batch
+            b_input_ids, b_labels = batch
 
             # Forward 수행
             outputs = model(b_input_ids, labels=b_labels)
-
+            print(outputs)
             # 로스 구함
             loss = outputs[0]
 
@@ -188,33 +193,47 @@ def get_label(code, number):
 
     return label
 
-
 '''
 test 구간
 '''
-Data_X = []
-Data_Y = []
 
-code_list, code_str_list = get_code_code_str()
-for code_ind in range(len(code_str_list)):
-    code_str = code_str_list[code_ind]
-    code = code_list[code_ind]
-    print("test!!")
-    print(code)
-    url_list, subject_list = get_url_list(code_str)
 
-    totken_txts = [get_tokenize(subject) for subject in subject_list]
-    totken_embeddings = [get_embedding_token(totken_txt) for totken_txt in totken_txts]
-    print(totken_embeddings)
-    Data_X += totken_embeddings
+# Data_X = np.array([])
+# Data_Y = np.array([])
+#
+# code_list, code_str_list = get_code_code_str()
+# for code_ind in range(len(code_str_list)):
+#     code_str = code_str_list[code_ind]
+#     code = code_list[code_ind]
+#     print("test!!")
+#     print(code)
+#     url_list, subject_list = get_url_list(code_str)
+#
+#     totken_txts = [get_tokenize(subject) for subject in subject_list]
+#
+#     totken_embeddings = [get_embedding_token(totken_txt) for totken_txt in totken_txts]
+#     totken_embeddings = match_sent_size(totken_embeddings)
+#
+#     labels = get_label(code, len(subject_list))
+#     labels = np.array(labels)
+#     if len(Data_X)==0:
+#         Data_X = totken_embeddings
+#         Data_Y = labels
+#     else:
+#         Data_X = np.append(Data_X, totken_embeddings, axis=0)
+#         Data_Y = np.append(Data_Y, labels, axis=0)
+#     print(Data_X)
+#     print(Data_Y)
+#
+# Data_X = torch.tensor(Data_X)
+# Data_Y = torch.tensor(Data_Y)
+# Data_Y = Data_Y.type(torch.LongTensor)
+#
+# train_dataloader = make_data_set(Data_X, Data_Y)
+# model = train_model(train_dataloader)
+# print('end_test')
 
-    labels = get_label(code, len(subject_list))
-    Data_Y += labels
-    print(labels)
 
-train_dataloader = make_data_set(Data_X, Data_Y)
-model = train_model(train_dataloader)
-print('end_test')
 # code_str_list = ["samsung%20electronic"]
 # for code_str in code_str_list:
 #     url_list, subject_list = get_url_list(code_str)
