@@ -1,8 +1,8 @@
 from common import *
 
 
-class TraderEngine(metaclass=ABCMeta):
-    """TraderEngine class(superclass)
+class BaseCollectorEngine(metaclass=ABCMeta):
+    """BaseCollectorEngine class(superclass)
     :class:`Engine_Y`, :class:`Engine_J`, :class:`Engine_L` 이 상속받아야 하는 class
 
     :param dict params: Parameter
@@ -11,7 +11,7 @@ class TraderEngine(metaclass=ABCMeta):
         self.params = params
 
     @abstractmethod
-    def get_action(self):
-        """다음 시점에 취해야 할 매매 action을 반환
+    def collect_data(self):
+        """데이터를 수집
         """
         pass

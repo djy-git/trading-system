@@ -1,6 +1,5 @@
 from Engine.CollectorEngine import *
 from Engine.Engine_J.util import *
-from Trader.util import *
 
 
 
@@ -8,12 +7,9 @@ from Trader.util import *
 class CollectorEngine_J(CollectorEngine):
     """정재용 엔진
     """
-    def __init__(self, params):
+    def __init__(self, params, code_str_list):
         super().__init__(params)
-
-    def set_code_str_list(self, code_str_list):
         self.code_str_list = code_str_list
-
 
     def collect_data(self):
         code_str_list = ["samsung%20electronic"]

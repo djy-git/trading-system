@@ -1,8 +1,8 @@
-from Engine.CollectorEngine import *
+from Engine.BaseCollectorEngine import *
 from Engine.Engine_Y.util import *
 
 
-class CollectorEngine_Y(CollectorEngine):
+class CollectorEngine(BaseCollectorEngine):
     """윤동진 엔진
     """
     def __init__(self, params):
