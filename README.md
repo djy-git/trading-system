@@ -27,13 +27,12 @@ $ python setup.py trade
     │   ├── Engine_J
     │   ├── Engine_L
     │   ├── Engine_Y
-    │   │   ├── CollectorEngine_Y.py
-    │   │   ├── Engine_Y.py
-    │   │   └── TraderEngine_Y.py
     │   └── TraderEngine.py
     ├── Interface.py
     ├── Trader
-    │   └── Trader.py
+    │   ├── Backtester.py
+    │   ├── Trader.py
+    │   └── util.py
     ├── common
     │   ├── DBHandler.py
     │   ├── LoggerFactory.py

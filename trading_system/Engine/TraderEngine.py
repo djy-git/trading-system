@@ -11,7 +11,7 @@ class TraderEngine(metaclass=ABCMeta):
         self.params = params
 
     @abstractmethod
-    def get_action(self):
+    def get_portfolio(self):
         """다음 시점에 취해야 할 매매 action을 반환
         """
         pass

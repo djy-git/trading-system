@@ -9,8 +9,8 @@ class TraderEngine_Y_momentum_cap_5(TraderEngine):
         super().__init__(params)
 
     @L
-    def get_action(self):
-        """다음 시간에 수행할 액션을 선택
+    def get_portfolio(self):
+        """다음 시간의 포트폴리오를 선택
         """
         ## 1. 데이터 받아오기
         data = self.get_data()
@@ -25,6 +25,4 @@ class TraderEngine_Y_momentum_cap_5(TraderEngine):
         """
 
         ## 1. 데이터 받아오고 전처리 (TODO: update to DB)
-        raw_datas = self.get_raw_datas()  # keys: ['stock', 'index', 'info']
-        datas     = self.process_datas(raw_datas)
-
+        raw_datas = get_raw_datas()  # keys: ['stock', 'index', 'info']

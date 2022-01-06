@@ -8,9 +8,9 @@ class TraderEngine_Y(TraderEngine):
         super().__init__(params)
 
     @L
-    def get_action(self):
-        """다음 시간에 수행할 액션을 선택
+    def get_portfolio(self):
+        """다음 시간의 포트폴리오를 선택
         """
         cls = getattr(import_module(f"Engine.Engine_Y.TraderEngine_Y_{self.params['TRADE_STRATEGY_Y']}"),
                       f"TraderEngine_Y_{self.params['TRADE_STRATEGY_Y']}")
-        return cls(self.params).get_action()
+        return cls(self.params).get_portfolio()

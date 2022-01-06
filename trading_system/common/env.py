@@ -43,11 +43,14 @@ import pymysql
 
 
 ## Plotting packages
-import seaborn as sns
 import matplotlib.pyplot as plt
-import PIL
-from PIL import Image
+import seaborn as sns
+import plotly
+import plotly.graph_objects as go
+import plotly.express as px
 # import cv2
+# import PIL
+# from PIL import Image
 
 
 ## Matplotlib options
