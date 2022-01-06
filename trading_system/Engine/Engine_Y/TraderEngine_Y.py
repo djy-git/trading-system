@@ -11,6 +11,6 @@ class TraderEngine_Y(TraderEngine):
     def get_portfolio(self):
         """다음 시간의 포트폴리오를 선택
         """
-        cls = getattr(import_module(f"Engine.Engine_Y.TraderEngine_Y_{self.params['TRADE_STRATEGY_Y']}"),
-                      f"TraderEngine_Y_{self.params['TRADE_STRATEGY_Y']}")
+        cls = getattr(import_module(f"Engine.Engine_Y.TraderEngine_Y_{self.params['Y_ALGORITHM']}"),
+                      f"TraderEngine_Y_{self.params['Y_ALGORITHM']}")
         return cls(self.params).get_portfolio()
