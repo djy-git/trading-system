@@ -1,7 +1,7 @@
-from Engine.TraderEngine import *
+from Engine.BaseTraderEngine import *
 
 
-class TraderEngine_Y(TraderEngine):
+class TraderEngine(BaseTraderEngine):
     """윤동진 엔진
     """
     def __init__(self, params):

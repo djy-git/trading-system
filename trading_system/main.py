@@ -6,7 +6,7 @@ from Interface import *
 parser = argparse.ArgumentParser()
 
 ## 1. 수행 작업
-parser.add_argument('--CMD', type=str, default='trade')
+parser.add_argument('--CMD', type=str, default='collect')
 parser.add_argument('--DEBUG', type=str2bool, default=False)
 parser.add_argument('--TRADE_METHOD', type=str, default='backtesting')
                     # description='Options: [backtesting, fake_trading, real_trading]')

@@ -1,10 +1,10 @@
-from Engine.CollectorEngine import *
+from Engine.BaseCollectorEngine import *
 from Engine.Engine_J.util import *
 
 
 
 
-class CollectorEngine_Y(CollectorEngine):
+class CollectorEngine_Y(BaseCollectorEngine):
     """정재용 엔진
     """
     def __init__(self, params, code_str_list):
@@ -21,7 +21,7 @@ test 구간
 
 code_str_list = ["samsung%20electronic"]
 
-test_Obj = CollectorEngine_Y(None, code_str_list)
+test_Obj = BaseCollectorEngine_Y(None, code_str_list)
 test_Obj.collect_data()
 '''
 test 구간 해제

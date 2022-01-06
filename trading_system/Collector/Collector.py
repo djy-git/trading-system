@@ -32,6 +32,6 @@ class Collector:
         :rtype: dict
         """
         return {
-            id: getattr(import_module(f"Engine.Engine_{id}.CollectorEngine_{id}"), f"CollectorEngine_{id}")(self.params)
+            id: getattr(import_module(f"Engine.Engine_{id}.CollectorEngine.CollectorEngine"), "CollectorEngine")(self.params)
             for id in self.params['ENGINE']
         }

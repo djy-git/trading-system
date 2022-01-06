@@ -1,8 +1,8 @@
-from Engine.TraderEngine import *
+from Engine.BaseTraderEngine import *
 from Engine.Engine_Y.util import *
 
 
-class TraderEngine_Y_momentum_cap_5(TraderEngine):
+class TraderEngine_momentum_cap_5(BaseTraderEngine):
     """윤동진 엔진
     """
     def __init__(self, params):
