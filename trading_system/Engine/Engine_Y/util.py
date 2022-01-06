@@ -1,4 +1,4 @@
-from Trader.util import *
+from common import *
 import pandas_datareader.data as web
 import FinanceDataReader as fdr
 import pykrx.stock as kstock
