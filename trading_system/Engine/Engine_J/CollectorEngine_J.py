@@ -1,28 +1,26 @@
 from Engine.CollectorEngine import *
 from Engine.Engine_J.util import *
+from Trader.util import *
 
 
 
 
-class CollectorEngine_Y(CollectorEngine):
+class CollectorEngine_J(CollectorEngine):
     """정재용 엔진
     """
-    def __init__(self, params, code_str_list):
+    def __init__(self, params):
         super().__init__(params)
+
+    def set_code_str_list(self, code_str_list):
         self.code_str_list = code_str_list
 
+
     def collect_data(self):
-        for code_str in self.code_str_list:
-            url_list, subject_list = get_url_list(code_str)
+        code_str_list = ["samsung%20electronic"]
+        self.set_code_str_list(code_str_list)
 
-'''
-test 구간
-'''
-
-code_str_list = ["samsung%20electronic"]
-
-test_Obj = CollectorEngine_Y(None, code_str_list)
-test_Obj.collect_data()
-'''
-test 구간 해제
-'''
+        print("Here!")
+        data = get_raw_datas(self.params)
+        print(data)
+        # for code_str in self.code_str_list:
+        #     url_list, subject_list = get_url_list(code_str)
