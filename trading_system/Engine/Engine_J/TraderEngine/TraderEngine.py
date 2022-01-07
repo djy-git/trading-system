@@ -12,9 +12,9 @@ class TraderEngine(BaseTraderEngine):
     def get_portfolio(self):
         Data_X, Data_Y = self.data_collector.collect_data()
         Data_X = torch.tensor(Data_X)
-        model = self.Get_model(PATH)
-        ans = model.predict(Data_X)
-        return
+        model = self.Get_model()
+        ans = model(Data_X)
+        return ans
 
     def Train_model(self, PATH='../model/'):
         Data_X, Data_Y = self.data_collector.get_train_data()
@@ -36,4 +36,4 @@ test!
 '''
 tmp = TraderEngine(None)
 #tmp.Train_model()
-tmp.get_portfolio()
+print(tmp.get_portfolio())

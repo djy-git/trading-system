@@ -74,5 +74,5 @@ class CollectorEngine(BaseCollectorEngine):
 '''
 test!!
 '''
-# temp = CollectorEngine(None)
-# temp.get_save_Data()
+temp = CollectorEngine(None)
+temp.get_save_Data()
