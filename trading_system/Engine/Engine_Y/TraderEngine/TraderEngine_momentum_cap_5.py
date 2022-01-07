@@ -13,7 +13,6 @@ class TraderEngine_momentum_cap_5(BaseTraderEngine):
         super().__init__(params)
         self.raw_datas = get_raw_datas(params)
 
-    @L
     def get_portfolio(self, trading_date, client):
         """다음 시간의 포트폴리오를 선택
 
@@ -25,14 +24,13 @@ class TraderEngine_momentum_cap_5(BaseTraderEngine):
         ## 1. 데이터 받아오기
         # data = self.get_train_data(trading_date)
 
-        latest_data = client.portfolio.get_latest_data()
-        if len(latest_data) > 0:
-            num = latest_data.query("symbol == '005930'").num[0]
+        holding_data = client.portfolio.get_holding_data()
+        if len(holding_data) > 0:
+            num = holding_data.query("symbol == '005930'").num[0]
         else:
             num = 0
         return Portfolio({'005930': num+1}, trading_date)
 
-    @L
     def get_train_data(self, trading_date):
         """DB로부터 데이터를 받아오기
 

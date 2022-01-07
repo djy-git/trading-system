@@ -15,7 +15,6 @@ class Portfolio:
     """
     def __init__(self, data_dict=None, date=None):
         self.data = self.generate_data(data_dict, date)
-
     def generate_data(self, data_dict, date):
         """포트폴리오 데이터를 생성
 
@@ -33,7 +32,6 @@ class Portfolio:
         data.symbol = data.symbol.astype(str)
         data.num    = data.num.astype(np.int32)
         return data
-
     def add(self, portfolio, date=None):
         """
         포트폴리오 데이터를 추가
@@ -54,7 +52,7 @@ class Portfolio:
         :rtype: pd.DataFrame
         """
         return self.data[self.data.index == date]
-    def get_latest_data(self):
+    def get_holding_data(self):
         """최근 날짜의 포트폴리오 정보를 반환
 
         :return: 최근 날짜의 포트폴리오 정보

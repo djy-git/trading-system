@@ -13,11 +13,11 @@ parser.add_argument('--DEBUG', type=str2bool, default=False)
 ## 2. 데이터
 ## 2.1 전체 데이터
 parser.add_argument('--TIME_UNIT', type=str, default='day')
-parser.add_argument('--START_DATE', type=str, default='2020-01-01')
+parser.add_argument('--START_DATE', type=str, default='2015-01-01')
 parser.add_argument('--END_DATE', type=str, default=datetime.now().strftime("%Y-%m-%d"))
 
 ## 2.2 거래 데이터
-parser.add_argument('--TRADE_START_DATE', type=str, default='2022-01-01')
+parser.add_argument('--TRADE_START_DATE', type=str, default='2015-01-01')
 parser.add_argument('--TRADE_END_DATE', type=str, default=datetime.now().strftime("%Y-%m-%d"))
 
 
@@ -34,7 +34,7 @@ parser.add_argument('--Y_ALGORITHM', type=str, default='momentum_cap_5')
 ## 4. 거래 설정
 parser.add_argument('--TRADE_METHOD', type=str, default='backtesting')
                     # description='Options: [backtesting, fake_trading, real_trading]')
-parser.add_argument('--BALANCE', type=int, default=10_000_000)
+parser.add_argument('--BALANCE', type=int, default=100_000_000)
 
 
 if __name__ == '__main__':
