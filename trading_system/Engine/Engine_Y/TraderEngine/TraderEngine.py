@@ -6,11 +6,13 @@ class TraderEngine(BaseTraderEngine):
     """
     def __init__(self, params):
         super().__init__(params)
+        self.engine = getattr(import_module(f"Engine.Engine_Y.TraderEngine.TraderEngine_{self.params['Y_ALGORITHM']}"),
+                      f"TraderEngine_{self.params['Y_ALGORITHM']}")(self.params)
 
-    @L
-    def get_portfolio(self, trading_date):
+    def get_portfolio(self, trading_date, status):
         """다음 시간의 포트폴리오를 선택
+        
+        :param Timestamp trading_date: 투자 날짜
+        :param Status status: 투자자 상태
         """
-        cls = getattr(import_module(f"Engine.Engine_Y.TraderEngine.TraderEngine_{self.params['Y_ALGORITHM']}"),
-                      f"TraderEngine_{self.params['Y_ALGORITHM']}")
-        return cls(self.params).get_portfolio(trading_date)
+        return self.engine.get_portfolio(trading_date, status)

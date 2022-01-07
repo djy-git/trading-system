@@ -1,46 +1,49 @@
 from Engine.Engine_Y.util import *
 from Trader.util import *
+from Trader.Client import *
 
 
 class Backtester:
     """Backtesting class
 
     :param dict params: Backtesting을 위한 parameters
+    :ivar dict engines: 엔진 객체들
+    :ivar dict raw_datas: raw 데이터
     """
     def __init__(self, params):
         self.params  = params
         self.engines = self.load_engines()
-
+        self.raw_datas = {}
+        
     @L
     def run(self):
         """Backtesting 실행"""
         ## 1. 벤치마크 데이터 가져오기
-        base_data = self.get_benchmark_data('KOSPI200')
+        benchmark_data = self.get_benchmark_data('KOSPI200')
 
         ## 2. 투자 진행
-        self.trade(base_data)
+        self.trade(benchmark_data)
 
     @L
-    def trade(self, base_data):
+    def trade(self, benchmark_data):
         """투자 수행
         
-        :param dict base_data: 벤치마크 데이터
-        :param pd.DataFrame base_data: 벤치마크 데이터
+        :param pd.DataFrame benchmark_data: 벤치마크 데이터
         """
-        ## 1. 시간에 따라 투자 진행
-        for date in base_data.index:
-            portfolios = self.get_portfolios(dt2str(date))
+        ## 1. 투자자의 상태를 관리하는 Status 객체 생성
+        client = Client(self.params, self.raw_datas)
 
+        ## 2. 시간에 따라 투자 진행
+        for date in benchmark_data.index:
+            ## 2.1 각 엔진 별 포트폴리오 선택
+            portfolios = self.get_portfolios(date, client)
 
+            ## 2.2 최종 포트폴리오 선택
+            final_portfolio = self.get_final_portfolio(portfolios)
 
-        # ## 1. 각 Engine별 매매 action 가져오기
-        # actions = self.get_actions()
-        #
-        # ## 2. actions를 최종 action으로 처리
-        # final_action = self.process_actions(actions)
-        #
-        # ## 3. 투자 수행
-        # self.trade(final_action)
+            ## 3. 투자 수행
+            client.trade(final_portfolio)
+            LOGGER.info(f"{dt2str(client.updating_date)} 순자산: {client.net_wealth}")
 
     def get_benchmark_data(self, symbol):
         """벤치마크 데이터 가져오기
@@ -50,11 +53,11 @@ class Backtester:
         :return: 데이터
         :rtype: pandas.DataFrame
         """
-        datas = get_raw_datas(self.params)
+        self.raw_datas = get_raw_datas(self.params)
         for key in ['stock', 'index']:
-            if symbol in list(datas[key].symbol):
+            if symbol in list(self.raw_datas[key].symbol):
                 ## 1. 데이터 선택
-                data = datas[key].query(f"symbol == '{symbol}'")
+                data = self.raw_datas[key].query('symbol == @symbol')
 
                 ## 2. 기간 선택
                 return data.loc[(self.params['TRADE_START_DATE'] <= data.index) & (data.index <= self.params['TRADE_END_DATE'])]
@@ -72,42 +75,26 @@ class Backtester:
             for id in self.params['ENGINE']
         }
 
-    #################################
-
     @L
-    def get_portfolios(self, date):
-        """각 :class:`trading_system.TraderEngine` 별 취할 매매 action을 받아오기
+    def get_portfolios(self, trading_date, client):
+        """각 :class:`trading_system.TraderEngine` 별 취할 매매 포트폴리오 받아오기
 
-        :param str date: 거래 날짜
+        :param Timestamp trading_date: 거래 날짜
+        :param Client client: 투자자 상태
         :return: 각 :class:`trading_system.TraderEngine` 별 취할 매매 action
         :rtype: dict
         """
-        return {id: eng.get_portfolio(date) for id, eng in self.engines.items()}
+        return {id: eng.get_portfolio(trading_date, client) for id, eng in self.engines.items()}
+    @L
+    def get_final_portfolio(self, portfolios):
+        """각 엔진들의 portfolio들로부터 최종 portfolio를 생성
 
-    # @L
-    # def process_actions(self, actions):
-    #     """actions를 최종 action으로 처리
-    #
-    #     :param dict actions: 각 :class:`trading_system.TraderEngine` 별 취할 매매 action tuple
-    #     :return: 최종적으로 취할 매매 action
-    #     :rtype: dict
-    #     """
-    #     if len(self.params['ENGINE']) == 1:
-    #         return actions[self.params['ENGINE']]
-    #     else:
-    #         ## ensemble
-    #         raise NotImplementedError
-    #
-    # @L
-    # def trade(self, final_action):
-    #     """투자 수행
-    #
-    #     :param dict final_action: 취할 매매 action
-    #     """
-    #     with Switch(self.params['TRADE_METHOD']) as case:
-    #         if case('backtesting'):
-    #             pass
-    #
-    #         if case('fake_trading') or case('real_trading'):
-    #             ## 증권사 API 등을 이용하여 실제 투자 후 투자 결과를 반환
-    #             raise NotImplementedError
+        :param dict portfolios: 각 Engine 별 portfolio들
+        :return: 최종적으로 선택된 portfolio
+        :rtype: Portfolio
+        """
+        if len(self.params['ENGINE']) == 1:
+            return portfolios[self.params['ENGINE']]
+        else:
+            ## ensemble
+            raise NotImplementedError

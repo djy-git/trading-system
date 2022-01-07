@@ -18,5 +18,8 @@ class Trader:
         with Switch(self.params['TRADE_METHOD']) as case:
             if case('backtesting'):
                 Backtester(self.params).run()
-            if case.default:
+            if case('fake_trading') or case('real_trading'):
+                ## 증권사 API 등을 이용하여 실제 투자 후 투자 결과를 반환
                 raise NotImplementedError
+            if case.default:
+                raise ValueError(self.params['TRADE_METHOD'])

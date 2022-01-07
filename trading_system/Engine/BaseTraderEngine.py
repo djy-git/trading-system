@@ -11,9 +11,10 @@ class BaseTraderEngine(metaclass=ABCMeta):
         self.params = params
 
     @abstractmethod
-    def get_portfolio(self, trading_date):
+    def get_portfolio(self, trading_date, status):
         """``trading_date`` 시점에 취해야 할 매매 portfolio를 반환
 
-        :param str trading_date: 시점의 날짜
+        :param Timestamp trading_date: 시점의 날짜
+        :param Status status: 투자자 상태
         """
         pass

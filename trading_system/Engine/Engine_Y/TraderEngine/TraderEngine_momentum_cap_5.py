@@ -1,5 +1,6 @@
 from Engine.BaseTraderEngine import *
 from Engine.Engine_Y.util import *
+from Trader.Portfolio import *
 
 
 class TraderEngine_momentum_cap_5(BaseTraderEngine):
@@ -13,16 +14,23 @@ class TraderEngine_momentum_cap_5(BaseTraderEngine):
         self.raw_datas = get_raw_datas(params)
 
     @L
-    def get_portfolio(self, trading_date):
+    def get_portfolio(self, trading_date, client):
         """다음 시간의 포트폴리오를 선택
 
-        :param str trading_date: 거래 날짜
+        :param Timestamp trading_date: 거래 날짜
+        :param Client client: 투자자 상태
+        :return: 포트폴리오
+        :rtype: :class:`Trader.Portfolio`
         """
         ## 1. 데이터 받아오기
-        data = self.get_train_data(trading_date)
+        # data = self.get_train_data(trading_date)
 
-        print("get_portfolio() in", trading_date)
-
+        latest_data = client.portfolio.get_latest_data()
+        if len(latest_data) > 0:
+            num = latest_data.query("symbol == '005930'").num[0]
+        else:
+            num = 0
+        return Portfolio({'005930': num+1}, trading_date)
 
     @L
     def get_train_data(self, trading_date):

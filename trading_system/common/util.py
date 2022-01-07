@@ -16,23 +16,23 @@ SignalHandler.register_signal(signal.SIGINT)
 class Level:
     """Code의 level(깊이)을 저장하는 class
 
-    :cvar int val: Code의 깊이
-    :cvar defaultdict vals: 각 code의 깊이마다 진행도를 저장하는 dict
+    :cvar list vals: 각 code의 깊이마다 진행도를 저장하는 list
     """
-    val  = 1
-    vals = defaultdict(lambda: 1)
+    vals = [0, 1]
 
     @classmethod
     def step_into(cls):
         """Code의 깊이를 증가
         """
-        cls.val += 1
+        cls.vals.append(1)
     @classmethod
     def step_out(cls):
         """Code의 깊이를 감소
         """
-        cls.val           -= 1
-        cls.vals[cls.val] += 1
+        cls.vals.pop()
+        cls.vals[-1] += 1
+
+
 def L(fn):
     """Code의 level을 관리하는 decorator
     
@@ -73,14 +73,11 @@ def L(fn):
         :param dict kwargs: 함수의 keyword arguments
         :return: 함수의 return value
         """
-        name = f"{'.'.join([str(Level.vals[l]) for l in range(1, Level.val+1)]):<15}"
-
+        name = f"{'.'.join([str(Level.vals[l]) for l in range(1, len(Level.vals))]):<15}"
         print_fn(name, args, fn)
         Level.step_into()
-
         with Timer(name):
             rst = fn(*args, **kwargs)
-
         Level.step_out()
         return rst
     return log

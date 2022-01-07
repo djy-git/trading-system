@@ -13,11 +13,11 @@ parser.add_argument('--DEBUG', type=str2bool, default=False)
 ## 2. 데이터
 ## 2.1 전체 데이터
 parser.add_argument('--TIME_UNIT', type=str, default='day')
-parser.add_argument('--START_DATE', type=str, default='2015-01-01')
+parser.add_argument('--START_DATE', type=str, default='2020-01-01')
 parser.add_argument('--END_DATE', type=str, default=datetime.now().strftime("%Y-%m-%d"))
 
 ## 2.2 거래 데이터
-parser.add_argument('--TRADE_START_DATE', type=str, default='2020-01-01')
+parser.add_argument('--TRADE_START_DATE', type=str, default='2022-01-01')
 parser.add_argument('--TRADE_END_DATE', type=str, default=datetime.now().strftime("%Y-%m-%d"))
 
 
