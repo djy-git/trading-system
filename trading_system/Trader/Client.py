@@ -24,17 +24,20 @@ class Client:
 
     def initialize(self):
         """투자자의 상태를 초기화"""
-        self.portfolio  = Portfolio()
-        self.balance    = self.params['BALANCE']
-        self.net_wealth = self.balance
-        
+        self.portfolio    = Portfolio()
+        self.balance      = self.params['BALANCE']
+        self.stock_wealth = 0
+        self.net_wealth   = self.balance
+
+
     def update_net_wealth(self):
         """투자자의 순자산을 계산
 
         :return: 순자산
         :rtype: float
         """
-        self.net_wealth = self.balance + self.get_stock_wealth()
+        self.stock_wealth = self.get_stock_wealth()
+        self.net_wealth   = self.balance + self.stock_wealth
     def get_stock_wealth(self):
         """주식의 평가액을 반환
         
@@ -42,26 +45,28 @@ class Client:
         :rtype: float
         """
         rst = 0
-        data = self.portfolio.get_data_by_date(self.updating_date)
+        data = self.portfolio.get_holding_data()
         for symbol, num in data.itertuples(index=False):
-            if self.valid_symbol_in_date(symbol, self.updating_date):
-                rst += num * self.get_price(symbol, self.updating_date)
-            else:
-                rst += num * self.get_price(symbol, self.updating_date, nearest=True)
+            rst += num * self.get_price(symbol, self.updating_date, nearest=True)
         return rst
     def get_price(self, symbol, date, nearest=False):
         """주식의 가격을 가져옴
+        data에 symbol, date에 해당하는 값은 존재하는 것이 보장됨
 
         :param str symbol: 주식의 종목명
         :param Timestamp date: 주식의 가격을 가져올 날짜
         :return: 주식의 가격
-        :rtype: float
+        :rtype: float|None
         """
-        data = self.datas['stock'].query("symbol == @symbol")
-        if nearest:
-            return data[data.index <= date].iloc[-1].close
-        else:
-            return data.loc[date].close
+        try:
+            if nearest:
+                data = self.datas['stock'].loc[self.datas['stock'].index <= date]
+                return data.query("symbol == @symbol").iloc[-1].close
+            else:
+                return self.datas['stock'].loc[date].query("symbol == @symbol").close[0]
+        except:
+            LOGGER.warning(f"{date}에 {symbol} 값이 존재하지 않음")
+            return
 
     def trade(self, portfolio):
         """포트폴리오를 거래
@@ -74,65 +79,73 @@ class Client:
         ## 2. 매도 후 매수 수행 (잔고 부족 방지)
         # sell(), buy()에서 self.portfolio가 변해도 df2dict()는 deepcopy 객체를 반환
         port_dict, port_dict_hold = portfolio.df2dict(), self.portfolio.df2dict()
-        self.sell(port_dict, port_dict_hold)
-        self.buy(port_dict, port_dict_hold)
+        port_cnt, port_cnt_hold   = Counter(port_dict), Counter(port_dict_hold)
+        port_cnt.subtract(port_cnt_hold)
+        port_cnt_diff = port_cnt
+
+        self.sell(-port_cnt_diff, port_dict_hold)
+        self.buy(+port_cnt_diff, port_dict_hold)
+        self.hold(port_dict, port_dict_hold)
 
         ## 3. 잔고 갱신
         self.update_net_wealth()
 
-    def sell(self, port_dict, port_dict_hold):
+    def sell(self, port_cnt_sell, port_dict_hold):
         """자산을 매도
 
-        :param dict port_dict: 투자 포트폴리오
+        :param Counter port_cnt_sell: 매도 포트폴리오
         :param dict port_dict_hold: 보유 포트폴리오
         """
-        ## 1. 매도 자산 선택
-        sell_data = -(Counter(port_dict) - Counter(port_dict_hold))
+        ## 1. 매도 수행
+        for symbol, num in port_cnt_sell.items():
+            if price := self.get_price(symbol, self.updating_date):
+                if (num_hold := port_dict_hold.get(symbol, 0) - num) >= 0:
+                    ## Success case
+                    self.balance += num * price
+                    if num_hold > 0:
+                        self.portfolio.add({symbol: num_hold}, self.updating_date)
+                else:
+                    ## Failure case 1
+                    msg_fail = f"보유 주식 수 부족 (보유 주식 수: {port_dict_hold.get(symbol, 0)}개, 매도 주식 수: {num})"
+            else:
+                ## Failure case 2
+                msg_fail = "거래 데이터 없음"
 
-        ## 2. 매도 수행
-        for symbol, num in sell_data.items():
-            if self.valid_symbol_in_date(symbol, self.updating_date):
-                self.balance += num * self.get_price(symbol, self.updating_date)
-                self.portfolio.add({symbol: port_dict[symbol]}, self.updating_date)
-            else:  # 그대로 보유
-                if symbol in port_dict_hold:
-                    self.portfolio.add({symbol: port_dict_hold[symbol]}, self.updating_date)
-
-    def buy(self, port_dict, port_dict_hold):
+            ## Failure case
+            LOGGER.info(f"[{symbol} 매도 실패] {msg_fail}")
+            self.portfolio.add({symbol: port_cnt_hold[symbol]}, self.updating_date)
+    def buy(self, port_cnt_buy, port_dict_hold):
         """자산을 매수
 
+        :param Counter port_cnt_buy: 매수 포트폴리오
+        :param dict port_dict_hold: 보유 포트폴리오
+        """
+        ## 1. 매도 수행
+        for symbol, num in port_cnt_buy.items():
+            if price := self.get_price(symbol, self.updating_date):
+                if (price_buy := num*price) <= self.balance:
+                    ## Success case
+                    self.balance -= price_buy
+                    self.portfolio.add({symbol: port_dict_hold.get(symbol, 0) + num}, self.updating_date)
+                    continue
+                else:
+                    ## Failure case 1
+                    msg_fail = f"잔고 부족 (잔고: {self.balance:,d}, 가격: {price_buy:,d} = {num:,d}주 x {price:,d})"
+            else:
+                ## Failure case 2
+                msg_fail = "거래 데이터 없음"
+
+            ## Failure case
+            LOGGER.info(f"[{symbol} 매수 실패] {msg_fail}")
+            if symbol in port_dict_hold:
+                self.portfolio.add({symbol: port_dict_hold[symbol]}, self.updating_date)
+    def hold(self, port_dict, port_dict_hold):
+        """자산을 유지
+        
         :param dict port_dict: 투자 포트폴리오
         :param dict port_dict_hold: 보유 포트폴리오
         """
-        ## 1. 매수 자산 선택
-        buy_data = +(Counter(port_dict) - Counter(port_dict_hold))
-
-        ## 2. 매도 수행
-        for symbol, num in buy_data.items():
-            if self.valid_symbol_in_date(symbol, self.updating_date):
-                price = num * self.get_price(symbol, self.updating_date)
-                if price < self.balance:
-                    self.balance -= price
-                    self.portfolio.add({symbol: port_dict[symbol]}, self.updating_date)
-                else:
-                    LOGGER.info(f"[매수 실패(잔고 부족, 잔고: {self.balance}, 가격: {price})] {symbol}: {num}주")
-                    self.portfolio.add({symbol: port_dict_hold[symbol]}, self.updating_date)
-            else:  # 그대로 보유
-                if symbol in port_dict_hold:
-                    self.portfolio.add({symbol: port_dict_hold[symbol]}, self.updating_date)
-
-    def valid_symbol_in_date(self, symbol, date):
-        """``date`` 에 ``symbol`` 이 거래가능한지 확인
-
-        :param str symbol: 종목명
-        :param Timestamp date: 거래날짜
-        :return: 거래날짜에 해당 종목이 거래가능한지 여부를 반환
-        :rtype: bool
-        """
-        # return symbol in self.datas['stock'].loc[date].symbol.tolist()
-        try:
-            data = self.datas['stock'].loc[date]
-            data.query("symbol == @symbol")
-            return True
-        except:
-            return False
+        ## 1. 보유 유지
+        port_dict_no_diff = {symbol: num for symbol, num in port_dict.items() if num == port_dict_hold.get(symbol)}
+        if len(port_dict_no_diff) > 0:
+            self.portfolio.add(port_dict_no_diff, self.updating_date)

@@ -38,12 +38,13 @@ from dask.diagnostics import ProgressBar
 from switch import Switch
 from parse import parse, search
 import pymysql
-# from numba import njit, cuda
+from numba import njit, cuda
 
 
 ## Plotting packages
-import matplotlib.pyplot as plt
 import seaborn as sns
+import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 # import cv2
 # import PIL
 # from PIL import Image

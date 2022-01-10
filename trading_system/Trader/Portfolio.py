@@ -15,6 +15,14 @@ class Portfolio:
     """
     def __init__(self, data_dict=None, date=None):
         self.data = self.generate_data(data_dict, date)
+    def __repr__(self):
+        """포트폴리오 정보를 문자열로 반환
+
+        :return: 최근 포트폴리오 정보
+        :rtype: str
+        """
+        return str(self.df2dict(self.get_holding_data()))
+
     def generate_data(self, data_dict, date):
         """포트폴리오 데이터를 생성
 
@@ -28,6 +36,7 @@ class Portfolio:
         else:
             assert isinstance(data_dict, dict), "data should be dict with {symbol: num}"
             assert len(data_dict) > 0, "new_data가 비어있습니다."
+            assert all([num >= 0 for num in data_dict.values()]), "공매도 비허용"
             data = pd.DataFrame({'symbol': data_dict.keys(), 'num': data_dict.values()}, columns=['symbol', 'num'], index=pd.DatetimeIndex(len(data_dict) * [date], name='date'))
         data.symbol = data.symbol.astype(str)
         data.num    = data.num.astype(np.int32)
@@ -59,7 +68,7 @@ class Portfolio:
         :rtype: pd.DataFrame
         """
         if len(self.data) > 0:
-            data = self.data.loc[self.data.index.max()]
+            data = self.data.loc[self.data.index[-1]]
             if isinstance(data, pd.Series):  # 데이터 하나만 있을 경우, pd.Series로 반환
                 data = pd.DataFrame(data).T
             return data
@@ -72,10 +81,13 @@ class Portfolio:
         :rtype: Timestamp
         """
         return self.data.index.unique()[0]
-    def df2dict(self):
+    def df2dict(self, data=None):
         """포트폴리오 데이터를 dict로 변환
 
         :return: 포트폴리오 데이터
         :rtype: dict
         """
-        return {symbol: num for symbol, num in zip(self.data.symbol, self.data.num)}
+        if data is None:
+            data = self.data
+        return {symbol: num for symbol, num in zip(data.symbol, data.num)}
+

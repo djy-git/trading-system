@@ -1,5 +1,4 @@
 from Engine.Engine_Y.util import *
-from Trader.util import *
 from Trader.Client import *
 
 
@@ -25,7 +24,7 @@ class Backtester:
         trading_result = self.trade(benchmark_data)
 
         ## 3. 결과 출력
-        plot_result(benchmark_data, trading_result)
+        plot_result(benchmark_data, trading_result, self.params)
 
     @L
     def trade(self, benchmark_data):
@@ -49,7 +48,11 @@ class Backtester:
 
             ## 2.3 투자 수행
             client.trade(final_portfolio)
-            LOGGER.info(f"{dt2str(client.updating_date)} \t 순자산: {client.net_wealth:,d} = {client.balance:,d}(잔고) + {client.get_stock_wealth():,d}(주식평가액) \t (수익률: {100*(client.net_wealth/self.params['BALANCE']-1):.2f}%)")
+            
+            ## 2.4 결과 출력
+            msg  = f"{dt2str(client.updating_date)} \t 순자산: {client.net_wealth:,d} = {client.balance:,d}(잔고) + {client.stock_wealth:,d}(주식평가액) \t (수익률: {100*(client.net_wealth/self.params['BALANCE']-1):.2f}%) \n"
+            msg += f"\t\t 포트폴리오: {client.portfolio}"
+            LOGGER.info(msg)
             net_wealths.append(client.net_wealth)
 
         ## 3. 평가액을 반환
