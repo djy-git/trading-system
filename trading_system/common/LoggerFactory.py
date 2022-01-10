@@ -35,6 +35,10 @@ class LoggerFactory(metaclass=MetaSingleton):
         :return: 생성된 Logger
         :rtype: :class:`logging.Logger`
         """
+        def excepthook(*args):
+            logger.error('\nUncaught exception:', exc_info=args)
+            exit()
+
         generate_dir(PATH.LOG)
 
         logger = logging.getLogger()
@@ -54,7 +58,7 @@ class LoggerFactory(metaclass=MetaSingleton):
 
         logger.addHandler(stream_handler)
         logger.addHandler(file_handler)
-        sys.excepthook = lambda *args: logger.error('\nUncaught exception:', exc_info=args)
+        sys.excepthook = excepthook
 
         return logger
 

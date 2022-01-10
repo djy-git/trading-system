@@ -53,7 +53,6 @@ class DBHandler:
                 LOGGER.info(f"[New connection succeeded] {conn_desc}")
             except:
                 LOGGER.exception(f"[Connection failed] {conn_desc}")
-                exit()
         else:
             LOGGER.info(f"[Load existing connection] {conn_desc}")
         return self.conns[self.idx_info]
