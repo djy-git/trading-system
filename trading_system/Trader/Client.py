@@ -65,7 +65,7 @@ class Client:
             else:
                 return self.datas['stock'].loc[date].query("symbol == @symbol").close[0]
         except:
-            LOGGER.warning(f"{date}에 {symbol} 값이 존재하지 않음")
+            LOGGER.info(f"{date}에 {symbol} 값이 존재하지 않음")
             return
 
     def trade(self, portfolio):
@@ -112,7 +112,7 @@ class Client:
                 msg_fail = "거래 데이터 없음"
 
             ## Failure case
-            LOGGER.info(f"[{symbol} 매도 실패] {msg_fail}")
+            LOGGER.info(f"[{self.updating_date} {symbol} 매도 실패] {msg_fail}")
             self.portfolio.add({symbol: port_cnt_hold[symbol]}, self.updating_date)
     def buy(self, port_cnt_buy, port_dict_hold):
         """자산을 매수
@@ -136,7 +136,7 @@ class Client:
                 msg_fail = "거래 데이터 없음"
 
             ## Failure case
-            LOGGER.info(f"[{symbol} 매수 실패] {msg_fail}")
+            LOGGER.info(f"[{self.updating_date} {symbol} 매수 실패] {msg_fail}")
             if symbol in port_dict_hold:
                 self.portfolio.add({symbol: port_dict_hold[symbol]}, self.updating_date)
     def hold(self, port_dict, port_dict_hold):

@@ -12,9 +12,9 @@ def get_ratio(returns):
     :return: ratio 관련값
     :rtype: dict
     """
-    mean, std    = np.mean(returns), np.std(returns, ddof=1)
-    sharpe_ratio = np.sqrt(ANNUALIZATION_FACTOR) * mean / std
-    return dict(ratio=sharpe_ratio, mean=mean, std=std)
+    mean, std = np.mean(returns), np.std(returns, ddof=1)
+    ratio     = np.sqrt(ANNUALIZATION_FACTOR) * mean / std
+    return dict(ratio=ratio, mean=mean, std=std)
 def get_MDD(prices):
     """
     Compute Maximum Drawdown

@@ -22,9 +22,10 @@ class Backtester:
 
         ## 2. 투자 진행
         trading_result = self.trade(benchmark_data)
+        metrics        = self.get_metrics_info(trading_result)
 
         ## 3. 결과 출력
-        self.plot_result(benchmark_data, trading_result)
+        self.plot_result(trading_result, metrics)
 
     @L
     def trade(self, benchmark_data):
@@ -32,11 +33,14 @@ class Backtester:
         
         :param pd.DataFrame benchmark_data: 벤치마크 데이터
         :return: 투자 결과
-        :rtype: dict
+        :rtype: pd.DataFrame
         """
         ## 1. 투자자의 상태를 관리하는 Status 객체 생성
         client = Client(self.params, self.raw_datas)
-        net_wealths = [client.net_wealth]
+        net_wealths   = [client.net_wealth]
+        balances      = [client.balance]
+        stock_wealths = [client.stock_wealth]
+        _portfolios   = [str({})]
 
         ## 2. 시간에 따라 투자 진행
         for date in benchmark_data.index[1:]:
@@ -48,19 +52,32 @@ class Backtester:
 
             ## 2.3 투자 수행
             client.trade(final_portfolio)
+
+            ## 2.4 결과 저장
+            net_wealths.append(client.net_wealth)
+            balances.append(client.balance)
+            stock_wealths.append(client.stock_wealth)
+            _portfolios.append(str(client.portfolio))
             
-            ## 2.4 결과 출력
+            ## 2.5 결과 출력
             msg  = f"{dt2str(client.updating_date)} \t 순자산: {client.net_wealth:,d} = {client.balance:,d}(잔고) + {client.stock_wealth:,d}(주식평가액) \t (수익률: {100*(client.net_wealth/self.params['BALANCE']-1):.2f}%) \n"
             msg += f"\t\t 포트폴리오: {client.portfolio}"
             LOGGER.info(msg)
-            net_wealths.append(client.net_wealth)
 
         ## 3. 평가액을 반환
-        return dict(
-            net_wealth=pd.DataFrame({'close': net_wealths,
-                                     'return': pd.Series(net_wealths).pct_change().tolist()},
-                                    columns=['close', 'return'], index=benchmark_data.index)
-        )
+        trading_result = pd.DataFrame({
+            'net_wealth': net_wealths, 'return': pd.Series(net_wealths).pct_change().tolist(),
+            'benchmark': benchmark_data.close, 'benchmark_return': benchmark_data.close.pct_change(), 'alpha': np.array(net_wealths)/(benchmark_data.close),
+            'balance': balances, 'stock_wealth': stock_wealths,
+            'portfolio': _portfolios
+        }, columns=['net_wealth', 'return', 'benchmark', 'benchmark_return', 'alpha', 'balance', 'stock_wealth', 'portfolio'], index=benchmark_data.index)
+
+        ## 3.1 Postprocess
+        trading_result['return'].iloc[0] = 0
+        trading_result['benchmark_return'].iloc[0] = 0
+        trading_result['alpha'] /= trading_result['alpha'][0]
+
+        return trading_result
     def get_benchmark_data(self, symbol):
         """벤치마크 데이터 가져오기
 
@@ -110,37 +127,34 @@ class Backtester:
             ## ensemble
             raise NotImplementedError
 
-    def plot_result(self, benchmark_data, trading_result):
+    def plot_result(self, trading_result, metrics):
         """결과 출력
-        
-        :param pd.DataFrame benchmark_data: 벤치마크 데이터
-        :param dict trading_result: 투자 결과
+
+        :param pd.DataFrame trading_result: 투자 결과 (시계열)
+        :param pd.DataFrame metrics: 투자 결과 평가지표
         """
-        metrics = self.get_metrics_info(benchmark_data, trading_result)
-        title = f"Trading algorithm vs {self.params['BENCHMARK']} ({dt2str(benchmark_data.index[0])} ~ {dt2str(benchmark_data.index[-1])})"
+        title = f"{self.params['ALGORITHM']} vs {self.params['BENCHMARK']} ({dt2str(trading_result.index[0])} ~ {dt2str(trading_result.index[-1])})"
 
         generate_dir(PATH.RESULT)
         plot_metrics(metrics, title, self.params)
-        plot_result_price(benchmark_data, trading_result, title, self.params)
-        plot_result_return(benchmark_data, trading_result, title, self.params)
-
-    def get_metrics_info(self, benchmark_data, trading_result):
+        plot_result_price(trading_result, title, self.params)
+        plot_result_return(trading_result, title, self.params)
+    def get_metrics_info(self, trading_result):
         """Benchmark 데이터와 투자 결과에 대한 평가지표
 
-        :param pd.DataFrame benchmark_data: Benchmark 데이터
-        :param dict trading_result: 투자 결과
+        :param pd.DataFrame trading_result: 투자 결과
         :return: 평가지표
         :rtype: pd.DataFrame
         """
         ## 0. Prepare data
-        ps = benchmark_data['close'], trading_result['net_wealth']['close']
-        rs = benchmark_data['return'], trading_result['net_wealth']['return']
-        indexs = ['benchmark', 'algorithm']
+        ps = trading_result.benchmark, trading_result.net_wealth
+        rs = trading_result.benchmark_return, trading_result['return']
+        indexs = [self.params['BENCHMARK'], self.params['ALGORITHM']]
         result = pd.DataFrame(index=indexs,
-                              columns=['sharpe_ratio', 'mean_return', 'std_return',
+                              columns=['sharpe ratio', 'mean return', 'std return',
                                        'VWR', 'CAGR', 'variability',
                                        'MDD',
-                                       'information_ratio', 'mean_excess_return', 'std_excess_return'])
+                                       'information ratio', 'mean excess return', 'std excess return'])
 
         ## VWR parameters
         MAV = 1.5*get_VWR(ps[0])['variability']
@@ -149,9 +163,9 @@ class Backtester:
         for idx, p, r in zip(indexs, ps, rs):
             ## 1. Sharpe ratio
             sr_info = get_ratio(r)
-            result.loc[idx]['sharpe_ratio'] = sr_info['ratio']
-            result.loc[idx]['mean_return']  = sr_info['mean']
-            result.loc[idx]['std_return']   = sr_info['std']
+            result.loc[idx]['sharpe ratio'] = sr_info['ratio']
+            result.loc[idx]['mean return']  = sr_info['mean']
+            result.loc[idx]['std return']   = sr_info['std']
 
             ## 2. VWR
             vwr_info = get_VWR(p, MAV=MAV, TAU=TAU)
@@ -163,10 +177,10 @@ class Backtester:
             result.loc[idx]['MDD'] = get_MDD(p)
 
             ## 4. Information Ratio
-            if idx == 'algorithm':
+            if idx == self.params['ALGORITHM']:
                 ir_info = get_ratio(rs[1] - rs[0])
-                result.loc[idx]['information_ratio']  = ir_info['ratio']
-                result.loc[idx]['mean_excess_return'] = ir_info['mean']
-                result.loc[idx]['std_excess_return']  = ir_info['std']
+                result.loc[idx]['information ratio']  = ir_info['ratio']
+                result.loc[idx]['mean excess return'] = ir_info['mean']
+                result.loc[idx]['std excess return']  = ir_info['std']
 
         return result
