@@ -60,7 +60,7 @@ class Backtester:
             _portfolios.append(str(client.portfolio))
             
             ## 2.5 결과 출력
-            msg  = f"{dt2str(client.updating_date)} \t 순자산: {client.net_wealth:,d} = {client.balance:,d}(잔고) + {client.stock_wealth:,d}(주식평가액) \t (수익률: {100*(client.net_wealth/self.params['BALANCE']-1):.2f}%) \n"
+            msg  = f"{dt2str(client.updating_date)} \t 순자산: {client.net_wealth:,.0f} = {client.balance:,.0f}(잔고) + {client.stock_wealth:,.0f}(주식평가액) \t (수익률: {100*(client.net_wealth/self.params['BALANCE']-1):.2f}%) \n"
             msg += f"\t\t 포트폴리오: {client.portfolio}"
             LOGGER.info(msg)
 

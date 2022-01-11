@@ -99,9 +99,12 @@ class Client:
         ## 1. 매도 수행
         for symbol, num in port_cnt_sell.items():
             if price := self.get_price(symbol, self.updating_date):
-                if (num_hold := port_dict_hold.get(symbol, 0) - num) >= 0:
+                price_sell       = num * price
+                transaction_cost = price_sell * (TAX_RATE_KR + FEE_RATE_KR)
+                if (transaction_cost <= self.balance) and ((num_hold := port_dict_hold.get(symbol, 0) - num) >= 0):
                     ## Success case
-                    self.balance += num * price
+                    self.balance -= transaction_cost
+                    self.balance += price_sell
                     if num_hold > 0:
                         self.portfolio.add({symbol: num_hold}, self.updating_date)
                 else:
@@ -123,14 +126,17 @@ class Client:
         ## 1. 매도 수행
         for symbol, num in port_cnt_buy.items():
             if price := self.get_price(symbol, self.updating_date):
-                if (price_buy := num*price) <= self.balance:
+                price_buy        = num * price
+                transaction_cost = price_buy * FEE_RATE_KR
+                if price_buy + transaction_cost <= self.balance:
                     ## Success case
+                    self.balance -= transaction_cost
                     self.balance -= price_buy
                     self.portfolio.add({symbol: port_dict_hold.get(symbol, 0) + num}, self.updating_date)
                     continue
                 else:
                     ## Failure case 1
-                    msg_fail = f"잔고 부족 (잔고: {self.balance:,d}, 가격: {price_buy:,d} = {num:,d}주 x {price:,d})"
+                    msg_fail = f"잔고 부족 (잔고: {self.balance:,.0f}, 가격: {price_buy:,.0f} = {num:,d}주 x {price:,.0f})"
             else:
                 ## Failure case 2
                 msg_fail = "거래 데이터 없음"

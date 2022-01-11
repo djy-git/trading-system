@@ -7,7 +7,6 @@
 from common.Timer import *
 from common.SignalHandler import *
 from common.DBHandler import *
-from common.metrics import *
 
 
 ## Register SIGINT
