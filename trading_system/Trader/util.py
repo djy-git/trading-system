@@ -78,9 +78,9 @@ def plot_result_price(trading_result, title, params):
 
     ## 1. Plot lineplot
     ## 1.1 Generate figure and axes
-    gs = GridSpec(2, 1, height_ratios=[2, 1])
+    gs = GridSpec(3, 1, height_ratios=[2, 1, 1])
     fig = plt.figure(figsize=params['FIGSIZE'])
-    ax_t, ax_a = fig.add_subplot(gs[0]), fig.add_subplot(gs[1])  # t(rading algorithm), a(lpha)
+    ax_t, ax_a, ax_p = fig.add_subplot(gs[0]), fig.add_subplot(gs[1]), fig.add_subplot(gs[2])  # t(rading algorithm), a(lpha) p(ortfolio)
     ax_b = ax_t.twinx()  # b(enchmark)
 
     ## 1.2 Plot benchmark vs trading algorithm
@@ -90,6 +90,7 @@ def plot_result_price(trading_result, title, params):
     ax_t.axhline(norm_bp[0], color='k', linestyle='--')
     sns.lineplot(data=alpha, ax=ax_a, linewidth=2, label='Alpha')
     ax_a.axhline(1, color='k', linestyle='--')
+    ax_p.stackplot(trading_result.index, trading_result.balance, trading_result.stock_wealth, labels=['balance', 'stock wealth'])
 
 
     ## 2. Options
@@ -113,10 +114,11 @@ def plot_result_price(trading_result, title, params):
     ax_a.set_yticks(yticks)
     ax_a.set_yticklabels([f"{ytick:.2f}" for ytick in yticks])
     ax_a.set_ylim(min(alpha), max(alpha))
-    ax_a.set_ylabel(f"Alpha (ratio)", fontsize=15, fontweight='bold')
+    ax_a.set_ylabel(f"alpha (ratio)", fontsize=15, fontweight='bold')
+    ax_p.set_ylabel('composition', fontsize=15, fontweight='bold')
 
-    for ax in (ax_t, ax_a):
-        ## 2.3 xticks
+    ## 2.3 xticks
+    for ax in (ax_t, ax_a, ax_p):
         ax.xaxis.set_major_locator(mdates.YearLocator())
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%y-%m'))
         ax.xaxis.set_minor_locator(mdates.MonthLocator(bymonth=[3, 5, 7, 9, 11]))
@@ -128,7 +130,7 @@ def plot_result_price(trading_result, title, params):
         ax.grid(True, 'minor', linewidth=0.2)
 
         ## 2.5 legend
-        ax.legend(loc='upper left', fontsize='x-large')
+        ax.legend(loc='lower left', fontsize='x-large')
     fig.autofmt_xdate(which='both')
 
 

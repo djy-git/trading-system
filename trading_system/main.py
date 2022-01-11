@@ -34,13 +34,13 @@ parser.add_argument('--ALGORITHM', type=str, default='Buy samsung every day')
 ## 3.2.1 Y엔진
 ## 3.2.1.1 투자 알고리즘
 parser.add_argument('--Y_ALGORITHM', type=str, default='momentum_cap_5')
-parser.add_argument('--FIGSIZE', type=tuple, default=(16, 8))
+parser.add_argument('--FIGSIZE', type=tuple, default=(13, 13))
 
 
 ## 4. 거래 설정
 parser.add_argument('--TRADE_METHOD', type=str, default='backtesting')
                     # description='Options: [backtesting, fake_trading, real_trading]')
-parser.add_argument('--BALANCE', type=int, default=100_000_000)
+parser.add_argument('--BALANCE', type=int, default=10_000_000)
 
 
 if __name__ == '__main__':
