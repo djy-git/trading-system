@@ -126,6 +126,7 @@ def ini2dict(path, section):
     config.read(path)
     return dict(config[section])
 price2return = lambda price: (price / price.shift(1) - 1).fillna(0)
+prices2alpha = lambda p1, p2: ((p1/p1[0]) / (p2/p2[0]))
 
 
 ## Manage directory

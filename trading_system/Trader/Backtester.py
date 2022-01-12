@@ -65,19 +65,12 @@ class Backtester:
             LOGGER.info(msg)
 
         ## 3. 평가액을 반환
-        trading_result = pd.DataFrame({
-            'net_wealth': net_wealths, 'return': pd.Series(net_wealths).pct_change().tolist(),
-            'benchmark': benchmark_data.close, 'benchmark_return': benchmark_data.close.pct_change(), 'alpha': np.array(net_wealths)/(benchmark_data.close),
+        return pd.DataFrame({
+            'net_wealth': net_wealths, 'return': price2return(net_wealths),
+            'benchmark': benchmark_data.close, 'benchmark_return': price2return(benchmark_data.close), 'alpha': prices2alpha(net_welaths, benchmark_data.close),
             'balance': balances, 'stock_wealth': stock_wealths,
             'portfolio': _portfolios
         }, columns=['net_wealth', 'return', 'benchmark', 'benchmark_return', 'alpha', 'balance', 'stock_wealth', 'portfolio'], index=benchmark_data.index)
-
-        ## 3.1 Postprocess
-        trading_result['return'].iloc[0] = 0
-        trading_result['benchmark_return'].iloc[0] = 0
-        trading_result['alpha'] /= trading_result['alpha'][0]
-
-        return trading_result
     def get_benchmark_data(self, symbol):
         """벤치마크 데이터 가져오기
 
