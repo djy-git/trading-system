@@ -59,12 +59,15 @@ class Client:
         :rtype: float|None
         """
         try:
-            if nearest:
-                data = self.datas['stock'].loc[self.datas['stock'].index <= date]
-                return data.query("symbol == @symbol").iloc[-1].close
-            else:
-                return self.datas['stock'].loc[date].query("symbol == @symbol").close[0]
+            return self.datas['stock'].loc[date].query("symbol == @symbol").close[0]
         except:
+            pass
+
+        ## Time-consuming!
+        if nearest:
+            data = self.datas['stock'].loc[self.datas['stock'].index <= date]
+            return data.query("symbol == @symbol").iloc[-1].close
+        else:
             LOGGER.info(f"{date}에 {symbol} 값이 존재하지 않음")
             return
 
