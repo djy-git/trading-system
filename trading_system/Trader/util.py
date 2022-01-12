@@ -56,87 +56,46 @@ def plot_metrics(metrics, title, params):
     ## 4. Show
     fig.suptitle(title, fontsize=20, fontweight='bold')
     fig.tight_layout()
+    generate_dir(PATH.RESULT)
     fig.savefig(join(PATH.RESULT, f"{title}_metric.png"))
     fig.show()
     plt.close(fig)
-def plot_result_price(trading_result, title, params):
+def plot_result_price(trading_result, params):
+    bp = pd.Series(trading_result.benchmark, name=params['BENCHMARK'])
+    tp = pd.Series(trading_result.net_wealth, name=params['ALGORITHM'])
+    compare_prices(bp, tp, params, trading_result.balance, trading_result.stock_wealth)
+
+def compare_prices(p1, p2, params, balances=None, stock_wealths=None):
     """
     Plot price data
 
-    :param pd.DataFrame trading_result: 투자 결과
-    :param str title: title
+    :param pd.Series p1: 비교값 1 (benchmark)
+    :param pd.Series p2: 비교값 2 (algorithm)
     :param dict params: Parameters
+    :param Sequence balances: 잔고, default=None
+    :param Sequence stock_wealths: 주식 평가액, default=None
     """
-    ## 0. Prepare data
-    bp, br = trading_result.benchmark, trading_result.benchmark_return
-    tp, tr = trading_result.net_wealth, trading_result['return']
-    alpha  = trading_result.alpha
-
-    norm_bp = bp / bp.iloc[0]
-    norm_tp = tp / tp.iloc[0]
-
-
-    ## 1. Plot lineplot
+    ## 1. Plot line plot
     ## 1.1 Generate figure and axes
-    gs = GridSpec(3, 1, height_ratios=[2, 1, 1])
     fig = plt.figure(figsize=params['FIGSIZE'])
-    ax_t, ax_a, ax_p = fig.add_subplot(gs[0]), fig.add_subplot(gs[1]), fig.add_subplot(gs[2])  # t(rading algorithm), a(lpha) p(ortfolio)
-    ax_b = ax_t.twinx()  # b(enchmark)
-
-    ## 1.2 Plot benchmark vs trading algorithm
-    for label, data, p, r in zip((params['BENCHMARK'], params['ALGORITHM']), (norm_bp, norm_tp), (bp, tp), (br, tr)):
-        options = {'color': 'k'} if data is norm_bp else {}
-        sns.lineplot(data=data, ax=ax_t, linewidth=2, label=label, **options)
-    ax_t.axhline(norm_bp[0], color='k', linestyle='--')
-    sns.lineplot(data=alpha, ax=ax_a, linewidth=2, label='Alpha')
-    ax_a.axhline(1, color='k', linestyle='--')
-    ax_p.stackplot(trading_result.index, trading_result.balance, trading_result.stock_wealth, labels=['balance', 'stock wealth'])
-
-
-    ## 2. Options
-    ## 2.1 y-axis for ax_b, ax_t
-    ymin_bt, ymax_bt = min(norm_bp.min(), norm_tp.min()), max(norm_bp.max(), norm_tp.max())
-    for ax, p, norm_p, name in zip((ax_b, ax_t), (bp, tp), (norm_bp, norm_tp), (params['BENCHMARK'], 'net wealth')):
-        yticks = np.linspace(ymin_bt, ymax_bt, 10)
-        yticks = sorted(np.append(yticks, norm_p[0]))
-        if params['COUNTRY'] == 'kr':
-            yticklabels = [f"{p[0]*ytick:,.0f}({ytick-1:.2f})" for ytick in yticks]
-        else:
-            yticklabels = [f"{p[0]*ytick:,.2f}({ytick-1:.2f})" for ytick in yticks]
-        ax.set_yticks(yticks)
-        ax.set_yticklabels(yticklabels)
-        ax.set_ylim(ymin_bt, ymax_bt)
-        ax.set_ylabel(f"{name} (return)", fontsize=15, fontweight='bold')
-
-    ## 2.2 y-axis for ax_a
-    yticks = np.linspace(min(alpha), max(alpha), 7)
-    yticks = sorted(np.append(yticks, 1))
-    ax_a.set_yticks(yticks)
-    ax_a.set_yticklabels([f"{ytick:.2f}" for ytick in yticks])
-    ax_a.set_ylim(min(alpha), max(alpha))
-    ax_a.set_ylabel(f"alpha (ratio)", fontsize=15, fontweight='bold')
-    ax_p.set_ylabel('composition', fontsize=15, fontweight='bold')
-
-    ## 2.3 xticks
-    for ax in (ax_t, ax_a, ax_p):
-        ax.xaxis.set_major_locator(mdates.YearLocator())
-        ax.xaxis.set_major_formatter(mdates.DateFormatter('%y-%m'))
-        ax.xaxis.set_minor_locator(mdates.MonthLocator(bymonth=[3, 5, 7, 9, 11]))
-        ax.xaxis.set_minor_formatter(mdates.DateFormatter('%m'))
-        ax.set_xlabel(None)
-
-        ## 2.4 grid
-        ax.grid(True, linewidth=1)
-        ax.grid(True, 'minor', linewidth=0.2)
-
-        ## 2.5 legend
-        ax.legend(loc='lower left', fontsize='x-large')
-    fig.autofmt_xdate(which='both')
+    if balances is not None:
+        gs = GridSpec(3, 1, height_ratios=[2, 1, 1])
+        ax_p1, ax_r, ax_c = fig.add_subplot(gs[0]), fig.add_subplot(gs[1]), fig.add_subplot(gs[2])
+        plot_prices(p2, p1, params, ax_p1, fig)
+        plot_ratio(prices2alpha(p2, p1), params, ax_r, fig)
+        plot_composition(p1.index, balances, stock_wealths, params, ax_c, fig)
+    else:
+        gs = GridSpec(2, 1, height_ratios=[2, 1])
+        ax_p1, ax_r = fig.add_subplot(gs[0]), fig.add_subplot(gs[1])
+        plot_prices(p2, p1, params, ax_p1, fig)
+        plot_ratio(prices2alpha(p2, p1), params, ax_r, fig)
 
 
-    ## 3. Show
+    ## 2. Show
+    title = f"{p2.name} vs {p1.name} ({dt2str(p1.index[0])} ~ {dt2str(p1.index[-1])})"
     fig.suptitle(title, fontsize=20, fontweight='bold')
     fig.tight_layout()
+    generate_dir(PATH.RESULT)
     fig.savefig(join(PATH.RESULT, f"{title}_price.png"))
     fig.show()
     plt.close(fig)
@@ -178,7 +137,170 @@ def plot_result_return(trading_result, title, params):
     ## 4. Show
     fig.suptitle(title, fontsize=20, fontweight='bold')
     fig.tight_layout()
+    generate_dir(PATH.RESULT)
     fig.savefig(join(PATH.RESULT, f"{title}_return.png"))
     fig.show()
     plt.close(fig)
 
+
+def plot_prices(p1, p2=None, params=None, ax=None, fig=None):
+    """Plot prices
+
+    :param pd.Series p1: 비교값 1
+    :param pd.Series p2: 비교값 2
+    :param dict params: parameters
+    :param matplotlib.figure.Figure fig: figure, default=None
+    """
+    def plot_price(norm_p, ax, plot_params):
+        ax.axhline(1, color='k', linestyle='--')
+        sns.lineplot(data=norm_p, ax=ax, linewidth=2, label=norm_p.name, **plot_params)
+    ## 1. Prepare data
+    if ax is None and fig is None:
+        new_fig = True
+        fig, ax = plt.subplots(figsize=params['FIGSIZE'])
+    else:
+        new_fig = False
+    ps      = [p1, p2]             if p2 is not None else [p1]
+    norm_ps = [p1/p1[0], p2/p2[0]] if p2 is not None else [p1/p1[0]]
+    axes    = [ax, ax.twinx()]     if p2 is not None else [ax]
+    options = [{}, {'color': 'k'}] if p2 is not None else [{}]
+
+
+    ## 2. Plot
+    for norm_p, option in zip(norm_ps, options):
+        plot_price(norm_p, axes[0], option)
+
+
+    ## 3. Options
+    ymin, ymax = np.min(norm_ps), np.max(norm_ps)
+    for ax, norm_p, p in zip(axes, norm_ps, ps):
+        ## 3.1 y-axis
+        yticks = np.linspace(ymin, ymax, 10)
+        yticks = sorted(np.append(yticks, norm_p[0]))
+        if params['COUNTRY'] == 'kr':
+            yticklabels = [f"{p[0]*ytick:,.0f}({ytick-1:.2f})" for ytick in yticks]
+        else:
+            yticklabels = [f"{p[0]*ytick:,.2f}({ytick-1:.2f})" for ytick in yticks]
+        ax.set_yticks(yticks)
+        ax.set_yticklabels(yticklabels)
+        ax.set_ylim(ymin, ymax)
+        ax.set_ylabel(f"{norm_p.name} (return)", fontsize=15, fontweight='bold')
+
+        ## 3.2 x-axis
+        ax.xaxis.set_major_locator(mdates.YearLocator())
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%y-%m'))
+        ax.xaxis.set_minor_locator(mdates.MonthLocator(bymonth=[3, 5, 7, 9, 11]))
+        ax.xaxis.set_minor_formatter(mdates.DateFormatter('%m'))
+        ax.set_xlim(norm_p.index[0], norm_p.index[-1])
+        ax.set_xmargin(0.05)
+        ax.set_xlabel(None)  # date is 명백
+
+        ## 3.3 grid
+        ax.grid(True, linewidth=1)
+        ax.grid(True, 'minor', linewidth=0.2)
+
+    ## 3.4 legend
+    axes[0].legend(loc='lower left', fontsize='x-large')
+
+    ## 3.5 Adjust x-axis
+    fig.autofmt_xdate(which='both')
+
+    ## 4. Show if new figure
+    if new_fig:
+        fig.tight_layout()
+        fig.show()
+        plt.close(fig)
+def plot_ratio(ratios, params, ax=None, fig=None):
+    """Plot ratio
+    """
+    ## 1. Prepare data
+    if ax is None and fig is None:
+        new_fig = True
+        fig, ax = plt.subplots(figsize=params['FIGSIZE'])
+    else:
+        new_fig = False
+
+
+    ## 2. Plot
+    ax.axhline(1, color='k', linestyle='--')
+    sns.lineplot(data=ratios, ax=ax, linewidth=2, label='ratio')
+
+
+    ## 3. Options
+    ymin, ymax = np.min(ratios), np.max(ratios)
+
+    ## 3.1 y-axis
+    yticks = np.linspace(ymin, ymax, 10)
+    yticks = sorted(np.append(yticks, ratios[0]))
+    yticklabels = [f"{ytick:.3f}" for ytick in yticks]
+    ax.set_yticks(yticks)
+    ax.set_yticklabels(yticklabels)
+    ax.set_ylim(ymin, ymax)
+    ax.set_ylabel('ratio', fontsize=15, fontweight='bold')
+
+    ## 3.2 x-axis
+    ax.xaxis.set_major_locator(mdates.YearLocator())
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%y-%m'))
+    ax.xaxis.set_minor_locator(mdates.MonthLocator(bymonth=[3, 5, 7, 9, 11]))
+    ax.xaxis.set_minor_formatter(mdates.DateFormatter('%m'))
+    ax.set_xlim(ratios.index[0], ratios.index[-1])
+    ax.set_xmargin(0.05)
+    ax.set_xlabel(None)  # date is 명백
+
+    ## 3.3 grid
+    ax.grid(True, linewidth=1)
+    ax.grid(True, 'minor', linewidth=0.2)
+
+    ## 3.4 legend
+    ax.legend(loc='lower left', fontsize='x-large')
+
+    ## 3.5 Adjust x-axis
+    fig.autofmt_xdate(which='both')
+
+    ## 4. Show if new figure
+    if new_fig:
+        fig.tight_layout()
+        fig.show()
+        plt.close(fig)
+def plot_composition(dates, balances, stock_wealths, params, ax=None, fig=None):
+    """Plot ratio
+    """
+    ## 1. Prepare data
+    if ax is None and fig is None:
+        new_fig = True
+        fig, ax = plt.subplots(figsize=params['FIGSIZE'])
+    else:
+        new_fig = False
+
+
+    ## 2. Plot
+    ax.stackplot(dates, balances, stock_wealths, labels=['balance', 'stock wealth'])
+
+    ## 3. Options
+    ## 3.1 y-axis
+    ax.set_ylabel("composition", fontsize=15, fontweight='bold')
+
+    ## 3.2 x-axis
+    ax.xaxis.set_major_locator(mdates.YearLocator())
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%y-%m'))
+    ax.xaxis.set_minor_locator(mdates.MonthLocator(bymonth=[3, 5, 7, 9, 11]))
+    ax.xaxis.set_minor_formatter(mdates.DateFormatter('%m'))
+    ax.set_xlim(dates[0], dates[-1])
+    ax.set_xmargin(0.05)
+    ax.set_xlabel(None)  # date is 명백
+
+    ## 3.3 grid
+    ax.grid(True, linewidth=1)
+    ax.grid(True, 'minor', linewidth=0.2)
+
+    ## 3.4 legend
+    ax.legend(loc='lower left', fontsize='x-large')
+
+    ## 3.5 Adjust x-axis
+    fig.autofmt_xdate(which='both')
+
+    ## 4. Show if new figure
+    if new_fig:
+        fig.tight_layout()
+        fig.show()
+        plt.close(fig)

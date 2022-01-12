@@ -65,9 +65,10 @@ class Backtester:
             LOGGER.info(msg)
 
         ## 3. 평가액을 반환
+        net_wealths = np.array(net_wealths)
         return pd.DataFrame({
-            'net_wealth': net_wealths, 'return': price2return(net_wealths),
-            'benchmark': benchmark_data.close, 'benchmark_return': price2return(benchmark_data.close), 'alpha': prices2alpha(net_welaths, benchmark_data.close),
+            'net_wealth': net_wealths, 'return': price2return(net_wealths).tolist(),  # why??
+            'benchmark': benchmark_data.close, 'benchmark_return': price2return(benchmark_data.close), 'alpha': prices2alpha(net_wealths, benchmark_data.close),
             'balance': balances, 'stock_wealth': stock_wealths,
             'portfolio': _portfolios
         }, columns=['net_wealth', 'return', 'benchmark', 'benchmark_return', 'alpha', 'balance', 'stock_wealth', 'portfolio'], index=benchmark_data.index)
@@ -79,7 +80,7 @@ class Backtester:
         :return: 데이터
         :rtype: pandas.DataFrame
         """
-        self.raw_datas = get_raw_datas(self.params)
+        self.raw_datas = get_raw_datas()
         for key in ['stock', 'index']:
             if symbol in list(self.raw_datas[key].symbol):
                 ## 1. 데이터 선택
@@ -130,7 +131,7 @@ class Backtester:
 
         generate_dir(PATH.RESULT)
         plot_metrics(metrics, title, self.params)
-        plot_result_price(trading_result, title, self.params)
+        plot_result_price(trading_result, self.params)
         plot_result_return(trading_result, title, self.params)
     def get_metrics_info(self, trading_result):
         """Benchmark 데이터와 투자 결과에 대한 평가지표

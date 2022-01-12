@@ -11,7 +11,7 @@ class TraderEngine_SMA(BaseTraderEngine):
     """
     def __init__(self, params):
         super().__init__(params)
-        self.raw_datas = get_raw_datas(params)
+        self.raw_datas = get_raw_datas()
 
     def get_portfolio(self, trading_date, client):
         """다음 시간의 포트폴리오를 선택
@@ -22,14 +22,12 @@ class TraderEngine_SMA(BaseTraderEngine):
         :rtype: :class:`Trader.Portfolio`
         """
         ## 1. 데이터 받아오기
-        # data = self.get_train_data(trading_date)
-
         holding_data = client.portfolio.get_holding_data()
         if len(holding_data) > 0:
-            num = holding_data.query("symbol == '005930'").num[0]
+            num = holding_data.query("symbol == '069500'").num[0]
         else:
             num = 0
-        return Portfolio({'005930': num+1}, trading_date)
+        return Portfolio({'069500': num+1}, trading_date)
 
     def get_train_data(self, trading_date):
         """DB로부터 데이터를 받아오기
