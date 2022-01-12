@@ -1,7 +1,7 @@
 from common import *
 
 ## 연율화 지수
-ANNUALIZATION_FACTOR = 250
+ANNUALIZATION_FACTOR = 252
 
 
 def get_ratio(returns):
