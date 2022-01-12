@@ -3,7 +3,7 @@ from Engine.Engine_Y.util import *
 from Trader.Portfolio import *
 
 
-class TraderEngine_momentum_cap_5(BaseTraderEngine):
+class TraderEngine_SMA(BaseTraderEngine):
     """윤동진 엔진
 
     :param dict params: parameters

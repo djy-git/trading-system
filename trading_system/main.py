@@ -20,7 +20,7 @@ parser.add_argument('--BENCHMARK', type=str, default='KOSPI200')
 
 
 ## 2.2 거래 데이터
-parser.add_argument('--TRADE_START_DATE', type=str, default='2021-01-01')
+parser.add_argument('--TRADE_START_DATE', type=str, default='2018-01-01')
 parser.add_argument('--TRADE_END_DATE', type=str, default=datetime.now().strftime("%Y-%m-%d"))
 
 
@@ -29,18 +29,21 @@ parser.add_argument('--TRADE_END_DATE', type=str, default=datetime.now().strftim
 parser.add_argument('--ENGINE', type=str, default='Y')
                     # description='Options: [Y, J, L, or combining]')  # Y or J or L or YJL
 ## 3.2 각 엔진 세부 설정
-parser.add_argument('--ALGORITHM', type=str, default='Buy samsung every day')
+parser.add_argument('--ALGORITHM', type=str, default='SMA')
 
 ## 3.2.1 Y엔진
 ## 3.2.1.1 투자 알고리즘
-parser.add_argument('--Y_ALGORITHM', type=str, default='momentum_cap_5')
-parser.add_argument('--FIGSIZE', type=tuple, default=(13, 13))
+# parser.add_argument('--Y_ALGORITHM', type=str, default='SMA')
 
 
 ## 4. 거래 설정
 parser.add_argument('--TRADE_METHOD', type=str, default='backtesting')
                     # description='Options: [backtesting, fake_trading, real_trading]')
 parser.add_argument('--BALANCE', type=int, default=10_000_000)
+
+
+## 5. 기타 설정
+parser.add_argument('--FIGSIZE', type=tuple, default=(13, 13))
 
 
 if __name__ == '__main__':
