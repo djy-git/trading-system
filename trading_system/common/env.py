@@ -125,6 +125,7 @@ def ini2dict(path, section):
     config = configparser.ConfigParser()
     config.read(path)
     return dict(config[section])
+price2return = lambda price: (price / price.shift(1) - 1).fillna(0)
 
 
 ## Manage directory
