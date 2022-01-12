@@ -131,17 +131,16 @@ def download_stock_info(market):
     df_info['update_date'] = datetime.now().strftime("%Y-%m-%d")
     return df_info
 @L
-def get_raw_datas(params):
+def get_raw_datas():
     """Cache된 file 혹은 DB에서 받아오기
 
     :return: raw data
     :rtype: dict
     """
-    def get_raw_data(data_id, params):
+    def get_raw_data(data_id):
         """``data_id`` 데이터 받아오기
 
         :param str data_id: 데이터 종류
-        :param dict params: parameter
         :return: 데이터
         :rtype: :class:`pandas.DataFrame`
         """
@@ -150,28 +149,27 @@ def get_raw_datas(params):
         file_name = f'{table_name}.ftr'
         cache_path = join(PATH.TRAIN, file_name)
         try:
-            full_data = pd.read_feather(cache_path)
+            raw_data = pd.read_feather(cache_path)
         except:
             generate_dir(dirname(cache_path))
-            full_data = read_sql(f"select * from {table_name}")
-            to_feather(full_data, cache_path)
+            raw_data = read_sql(f"select * from {table_name}")
+            to_feather(raw_data, cache_path)
 
         if data_id in ['stock', 'index']:
             ## 2. 기간 선택
-            full_data.date = pd.to_datetime(full_data.date)
-            selected_data = full_data.loc[(params['START_DATE'] <= full_data.date) & (full_data.date <= params['END_DATE'])]
-            selected_data = selected_data.set_index(selected_data.date).drop(columns='date')
+            raw_data.date = pd.to_datetime(raw_data.date)
+            data = raw_data.set_index(raw_data.date).drop(columns='date')
 
             ## 3. volume = 0인 row 제거 (trading_value 는 nan 일 수 있음)
-            selected_data = selected_data.loc[selected_data.volume > 0]
+            data = data.loc[data.volume > 0]
         else:
-            selected_data = full_data
-        return selected_data
+            data = raw_data
+        return data
 
     ## 1. 주가, 지수, 종목정보 받아오기
     datas = {}
     for data_id in ['stock', 'index', 'info']:
-        datas[data_id] = get_raw_data(data_id, params)
+        datas[data_id] = get_raw_data(data_id)
 
     ## 2. 주가, 지수 날짜 일치시키기
     common_indexs  = datas['stock'].index.unique().intersection(datas['index'].index.unique())
