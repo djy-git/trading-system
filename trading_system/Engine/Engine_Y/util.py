@@ -132,6 +132,11 @@ def download_stock_info(market):
     return df_info
 @L
 def get_raw_datas(params):
+    """Cache된 file 혹은 DB에서 받아오기
+
+    :return: raw data
+    :rtype: dict
+    """
     def get_raw_data(data_id, params):
         """``data_id`` 데이터 받아오기
 
@@ -145,39 +150,33 @@ def get_raw_datas(params):
         file_name = f'{table_name}.ftr'
         cache_path = join(PATH.TRAIN, file_name)
         try:
-            data = pd.read_feather(cache_path)
+            full_data = pd.read_feather(cache_path)
         except:
             generate_dir(dirname(cache_path))
-            data = read_sql(f"select * from {table_name}")
-            to_feather(data, cache_path)
+            full_data = read_sql(f"select * from {table_name}")
+            to_feather(full_data, cache_path)
 
         if data_id in ['stock', 'index']:
             ## 2. 기간 선택
-            data.date = pd.to_datetime(data.date)
-            data = data.loc[(params['START_DATE'] <= data.date) & (data.date <= params['END_DATE'])]
-            data = data.set_index(data.date).drop(columns='date')
+            full_data.date = pd.to_datetime(full_data.date)
+            selected_data = full_data.loc[(params['START_DATE'] <= full_data.date) & (full_data.date <= params['END_DATE'])]
+            selected_data = selected_data.set_index(selected_data.date).drop(columns='date')
 
-            ## 3. Volume = 0인 row 제거
-            if data_id == 'stock':
-                data = data.loc[(data.volume > 0) & (data.trading_value > 0)]
-            else:
-                data = data.loc[data.volume > 0]
-        return data
-    """Cache된 file 혹은 DB에서 받아오기
+            ## 3. volume = 0인 row 제거 (trading_value 는 nan 일 수 있음)
+            selected_data = selected_data.loc[selected_data.volume > 0]
+        else:
+            selected_data = full_data
+        return selected_data
 
-    :return: raw data
-    :rtype: dict
-    """
     ## 1. 주가, 지수, 종목정보 받아오기
     datas = {}
     for data_id in ['stock', 'index', 'info']:
         datas[data_id] = get_raw_data(data_id, params)
 
     ## 2. 주가, 지수 날짜 일치시키기
-    common_indexs = datas['stock'].index.unique().intersection(datas['index'].index.unique())
+    common_indexs  = datas['stock'].index.unique().intersection(datas['index'].index.unique())
     datas['stock'] = datas['stock'].loc[common_indexs]
     datas['index'] = datas['index'].loc[common_indexs]
-
     return datas
 
 
