@@ -36,7 +36,7 @@ class Backtester:
         :rtype: pd.DataFrame
         """
         ## 1. 투자자의 상태를 관리하는 Status 객체 생성
-        client = Client(self.params, self.raw_datas)
+        client        = Client(self.params, self.raw_datas)
         net_wealths   = [client.net_wealth]
         balances      = [client.balance]
         stock_wealths = [client.stock_wealth]
@@ -58,7 +58,7 @@ class Backtester:
             balances.append(client.balance)
             stock_wealths.append(client.stock_wealth)
             _portfolios.append(str(client.portfolio))
-            
+
             ## 2.5 결과 출력
             msg  = f"{dt2str(client.updating_date)} \t 순자산: {client.net_wealth:,.0f} = {client.balance:,.0f}(잔고) + {client.stock_wealth:,.0f}(주식평가액) \t (수익률: {100*(client.net_wealth/self.params['BALANCE']-1):.2f}%) \n"
             msg += f"\t\t 포트폴리오: {client.portfolio}"
