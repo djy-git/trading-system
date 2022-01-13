@@ -1,4 +1,4 @@
-from common import *
+from common.util import *
 
 
 ## 연율화 지수
@@ -25,45 +25,75 @@ def get_metrics(price_benchmark, price_algorithm, params):
                                    'information ratio', 'mean excess return', 'std excess return'])
 
     ## VWR parameters
-    MAV = 1.5 * get_VWR(ps[0])['variability']
+    MAV = 1.5 * get_VWR(ps[0].values)[2]
     TAU = 2
 
     for name, p, r in zip(names, ps, rs):
         ## 1. Sharpe ratio
-        sr_info = get_ratio(r)
-        result.loc[name]['sharpe ratio'] = sr_info['ratio']
-        result.loc[name]['mean return']  = sr_info['mean']
-        result.loc[name]['std return']   = sr_info['std']
+        sr_info = get_ratio(r.values)
+        result.loc[name]['sharpe ratio'] = sr_info[0]
+        result.loc[name]['mean return']  = sr_info[1]
+        result.loc[name]['std return']   = sr_info[2]
 
         ## 2. VWR
-        vwr_info = get_VWR(p, MAV=MAV, TAU=TAU)
-        result.loc[name]['VWR']         = vwr_info['VWR']
-        result.loc[name]['CAGR']        = vwr_info['CAGR']
-        result.loc[name]['variability'] = vwr_info['variability']
+        vwr_info = get_VWR(p.values, MAV=MAV, TAU=TAU)
+        result.loc[name]['VWR']         = vwr_info[0]
+        result.loc[name]['CAGR']        = vwr_info[1]
+        result.loc[name]['variability'] = vwr_info[2]
 
         ## 3. Maximum DrawDown
-        result.loc[name]['MDD'] = get_MDD(p)
+        result.loc[name]['MDD'] = get_MDD(p.values)
 
         ## 4. Information Ratio
         if name == params['ALGORITHM']:
-            ir_info = get_ratio(rs[1] - rs[0])
-            result.loc[name]['information ratio']  = ir_info['ratio']
-            result.loc[name]['mean excess return'] = ir_info['mean']
-            result.loc[name]['std excess return']  = ir_info['std']
+            ir_info = get_ratio((rs[1] - rs[0]).values)
+            result.loc[name]['information ratio']  = ir_info[0]
+            result.loc[name]['mean excess return'] = ir_info[1]
+            result.loc[name]['std excess return']  = ir_info[2]
 
     return result
 
+def get_metrics_ts(price_benchmark, price_algorithm, params):
+    """Benchmark 데이터와 투자 결과에 대한 평가지표 시계열 계산
+
+    :param pd.Series price_benchmark: 벤치마크 가격
+    :param pd.Series price_algorithm: 알고리즘 가격
+    :param dict params: parameters
+    :return: 평가지표 시계열
+    :rtype: pandas.DataFrame
+    """
+    ## 0. Prepare data
+    ps    = price_benchmark.values, price_algorithm.values
+    rs    = price2return(price_benchmark).values, price2return(price_algorithm).values
+    names = [params['BENCHMARK'], params['ALGORITHM']]
+    dates = price_benchmark.index
+
+    def task(idx, date, ps, rs, names):
+        if idx < 20:
+            emptys = [0, 0]
+            return pd.DataFrame({'name': names, 'Sharpe ratio': emptys, 'VWR': emptys, 'MDD': emptys, 'Information ratio': emptys}, index=2*[date])
+        else:
+            return pd.DataFrame({'name'             : names,
+                                 'Sharpe ratio'     : [get_ratio(r[:idx+1])[0] for r in rs],
+                                 'VWR'              : [get_VWR(p[:idx+1])[0] for p in ps],
+                                 'MDD'              : [get_MDD(p[:idx+1]) for p in ps],
+                                 'Information ratio': [None, get_ratio(rs[1][:idx+1] - rs[0][:idx+1])[0]]}, index=2*[date])
+    tasks  = [delayed(task)(idx, date, ps, rs, names) for idx, date in enumerate(dates)]
+    return pd.concat(exec_parallel(tasks, params['DEBUG']))
+
+@njit
 def get_ratio(returns):
     """
     Compute ratio (Sharpe ratio, Information ratio, etc)
 
-    :param Sequence returns: 수익률
-    :return: ratio 관련값
-    :rtype: dict
+    :param numpy.ndArray returns: 수익률
+    :return: ratio, mean, std
+    :rtype: tuple
     """
-    mean, std = np.mean(returns), np.std(returns, ddof=1)
+    mean, std = np.mean(returns), np.std(returns)
     ratio     = np.sqrt(ANNUALIZATION_FACTOR) * mean / std
-    return dict(ratio=ratio, mean=mean, std=std)
+    return ratio, mean, std
+@njit
 def get_MDD(prices):
     """
     Compute Maximum Drawdown
@@ -81,6 +111,7 @@ def get_MDD(prices):
         if drawdown > max_drawdown:
             max_drawdown = drawdown
     return max_drawdown
+@njit
 def get_VWR(prices, MAV=0.5, TAU=2):
     """
     Compute Variability Weighted Return (VWR)
@@ -89,8 +120,8 @@ def get_VWR(prices, MAV=0.5, TAU=2):
     :param pd.Series prices: 가격
     :param float MAV: Maximum Acceptable Variability
     :param float TAU: 가격변동성
-    :return: VWR 관련값
-    :rtype: dict
+    :return: VWR, CAGR, variability
+    :rtype: tuple
     """
     ### 0. Alias
     T = len(prices)
@@ -101,20 +132,23 @@ def get_VWR(prices, MAV=0.5, TAU=2):
     norm_return = CAGR * 100
 
     ### 2. Ideal spreads_val
-    ideal_preds_val = [prices[0] * np.exp(mean_log_return * idx_time) for idx_time in range(T)]
+    ideal_preds_val = np.array([prices[0] * np.exp(mean_log_return * idx_time) for idx_time in range(T)])
 
     ### 3. Difference between ideal and real
-    diff = [prices[idx_time] / ideal_preds_val[idx_time] - 1 for idx_time in range(T)]
+    diff = np.array([prices[idx_time] / ideal_preds_val[idx_time] - 1 for idx_time in range(T)])
 
     ### 4. Variability
-    variability = np.std(diff, ddof=1)
+    variability = np.std(diff)
 
     if variability < MAV:
         if norm_return > 0:
-            return dict(VWR=norm_return * (1 - (variability / MAV) ** TAU), CAGR=CAGR,
-                        variability=variability)
+            return norm_return * (1 - (variability / MAV) ** TAU), CAGR, variability
+            # return dict(VWR=norm_return * (1 - (variability / MAV) ** TAU), CAGR=CAGR,
+            #             variability=variability)
         else:
-            return dict(VWR=norm_return * (variability / MAV) ** TAU, CAGR=CAGR,
-                        variability=variability)
+            return norm_return * (variability / MAV) ** TAU, CAGR, variability
+            # return dict(VWR=norm_return * (variability / MAV) ** TAU, CAGR=CAGR,
+            #             variability=variability)
     else:
-        return dict(VWR=0, CAGR=CAGR, variability=variability)
+        return 0, CAGR, variability
+        # return dict(VWR=0, CAGR=CAGR, variability=variability)
