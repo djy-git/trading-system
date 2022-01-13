@@ -14,7 +14,7 @@ class Portfolio:
     :ivar cudf.DataFrame df: 포트폴리오 데이터
     """
     def __init__(self, dic=None, date=None):
-        self.df           = self.generate_df(dic, date)
+        self.df = self.generate_df(dic, date)
     def __repr__(self):
         """포트폴리오 정보를 문자열로 반환
 
