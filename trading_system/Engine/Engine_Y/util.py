@@ -128,76 +128,25 @@ def download_stock_info(market):
 
     df_info = df_info.astype(str)
     df_info.columns = df_info.columns.str.lower()
-    df_info['update_date'] = datetime.now().strftime("%Y-%m-%d")
+    df_info['update_date'] = pd.to_datetime(datetime.now().strftime("%Y-%m-%d"))
     return df_info
-@L
-def get_raw_datas():
-    """Cache된 file 혹은 DB에서 받아오기
 
-    :return: raw data
+
+def get_train_data(trading_date, raw_datas):
+    """학습 데이터 선택
+
+    :param str trading_date: 거래 날짜
+    :param dict raw_datas: 전체 구간에 대한 데이터
+    :return: 현재, 미래 구간이 제외된 학습 데이터
     :rtype: dict
     """
-    def get_raw_data(data_id):
-        """``data_id`` 데이터 받아오기
-
-        :param str data_id: 데이터 종류
-        :return: 데이터
-        :rtype: :class:`pandas.DataFrame`
-        """
-        ## 1. Cache or DB에서 데이터 받아오기
-        table_name = 'stock_info_kr' if data_id == 'info' else f'{data_id}_daily_kr'
-        file_name = f'{table_name}.ftr'
-        cache_path = join(PATH.TRAIN, file_name)
-        try:
-            raw_data = pd.read_feather(cache_path)
-        except:
-            generate_dir(dirname(cache_path))
-            raw_data = read_sql(f"select * from {table_name}")
-            to_feather(raw_data, cache_path)
-
-        if data_id in ['stock', 'index']:
-            ## 2. 기간 선택
-            raw_data.date = pd.to_datetime(raw_data.date)
-            data = raw_data.set_index(raw_data.date).drop(columns='date')
-
-            ## 3. volume = 0인 row 제거 (trading_value 는 nan 일 수 있음)
-            data = data.loc[data.volume > 0]
-        else:
-            data = raw_data
-        return data
-
-    ## 1. 주가, 지수, 종목정보 받아오기
+    ## 1. 학습 구간 추출
     datas = {}
-    for data_id in ['stock', 'index', 'info']:
-        datas[data_id] = get_raw_data(data_id)
-
-    ## 2. 주가, 지수 날짜 일치시키기
-    common_indexs  = datas['stock'].index.unique().intersection(datas['index'].index.unique())
-    datas['stock'] = datas['stock'].loc[common_indexs]
-    datas['index'] = datas['index'].loc[common_indexs]
+    for data_id, data in raw_datas.items():
+        if data_id in ['stock', 'index']:
+            datas[data_id] = data.loc[data.index < trading_date]
+        elif data_id == 'info':
+            datas[data_id] = data.loc[data.listingdate.notnull() & (data.listingdate < trading_date)]
+        else:
+            raise ValueError(data_id)
     return datas
-
-
-## File save/load
-def unite_none(df):
-    """결측값을 None으로 통일
-
-    :param :class:`pandas.DataFrame` df: 제거할 DataFrame
-    :return: 제거한 DataFrame
-    :rtype: :class:`pandas.DataFrame`
-    """
-    return df.where((pd.notnull(df)), None)
-def to_feather(data, path):
-    """``data`` 를 feather file로 저장
-
-    :param DataFrame data: 저장할 데이터
-    :param str path: 저장할 경로
-    """
-    ## 1. None값 단일화
-    data = unite_none(data)
-
-    ## 2. Serialize index
-    data.reset_index(drop=True, inplace=True)
-
-    ## 3. Save
-    data.to_feather(path)

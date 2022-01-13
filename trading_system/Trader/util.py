@@ -1,6 +1,78 @@
 from common import *
 
 
+@L
+def get_raw_datas():
+    """Cache된 file 혹은 DB에서 받아오기
+
+    :return: raw data
+    :rtype: dict
+    """
+    def get_raw_data(data_id):
+        """``data_id`` 데이터 받아오기
+
+        :param str data_id: 데이터 종류
+        :return: 데이터
+        :rtype: :class:`cudf.DataFrame`
+        """
+        ## 1. Cache or DB에서 데이터 받아오기
+        table_name = 'stock_info_kr' if data_id == 'info' else f'{data_id}_daily_kr'
+        cache_path = join(PATH.TRAIN, f'{table_name}.ftr')
+        if not isfile(cache_path):
+            raw_data = cudf.from_pandas(read_sql(f"select * from {table_name}"))
+            generate_dir(dirname(cache_path))
+            raw_data.to_feather(cache_path)
+        raw_data = cudf.read_feather(cache_path)
+
+        if data_id in ['stock', 'index']:
+            ## 2. 기간 선택
+            data = raw_data.set_index(raw_data.date).drop(columns='date')
+
+            ## 3. volume = 0인 row 제거 (trading_value 는 nan 일 수 있음)
+            data = data.loc[data.volume > 0]
+        elif data_id == 'info':
+            data = raw_data
+            for col in ('listingdate', 'update_date'):
+                data[col] = pd.to_datetime(data[col].to_pandas())
+        else:
+            raise ValueError(data_id)
+
+        return data
+
+    ## 1. 주가, 지수, 종목정보 받아오기
+    datas = {}
+    for data_id in ['stock', 'index', 'info']:
+        datas[data_id] = get_raw_data(data_id)
+
+    ## 2. 주가, 지수 날짜 일치시키기
+    common_indexs  = datas['stock'].index.unique().to_pandas().intersection(datas['index'].index.unique().to_pandas())
+    datas['stock'] = datas['stock'].loc[common_indexs]
+    datas['index'] = datas['index'].loc[common_indexs]
+    return datas
+def get_price(data, symbol, date, nearest=False):
+    """주식의 가격을 가져옴
+
+    :param cudf.Dataframe data: 주가 데이터
+    :param str symbol: 주식의 종목명
+    :param Timestamp date: 주식의 가격을 가져올 날짜
+    :return: 주식의 가격
+    :rtype: float|None
+    """
+    try:
+        data = data.loc[date]
+        return data[data.symbol == symbol].close[0]
+    except:
+        pass
+
+    ## Time-consuming!
+    if nearest:
+        data = data.loc[data.index <= date]
+        return data[data.symbol == symbol].iloc[-1].close
+    else:
+        LOGGER.info(f"{date}에 {symbol} 값이 존재하지 않음")
+        return
+
+
 def plot_metrics(metrics, title, params):
     """평가지표를 그래프로 표현
 
@@ -92,7 +164,7 @@ def compare_prices(p1, p2, params, balances=None, stock_wealths=None):
 
 
     ## 2. Show
-    title = f"{p2.name} vs {p1.name} ({dt2str(p1.index[0])} ~ {dt2str(p1.index[-1])})"
+    title = f"{p2.name} vs {p1.name} ({ts2str(p1.index[0])} ~ {ts2str(p1.index[-1])})"
     fig.suptitle(title, fontsize=20, fontweight='bold')
     fig.tight_layout()
     generate_dir(PATH.RESULT)
@@ -103,7 +175,7 @@ def plot_result_return(trading_result, title, params):
     """
     Plot return data
 
-    :param pd.DataFrame trading_result: 투자 결과
+    :param cudf.DataFrame trading_result: 투자 결과
     :param str title: title
     :param dict params: Parameters
     """

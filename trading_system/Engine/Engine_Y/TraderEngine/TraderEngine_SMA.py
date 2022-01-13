@@ -21,26 +21,6 @@ class TraderEngine_SMA(BaseTraderEngine):
         :return: 포트폴리오
         :rtype: :class:`Trader.Portfolio`
         """
-        ## 1. 데이터 받아오기
-        holding_data = client.portfolio.get_holding_data()
-        if len(holding_data) > 0:
-            num = holding_data.query("symbol == '069500'").num[0]
-        else:
-            num = 0
-        return Portfolio({'069500': num+1}, trading_date)
-
-    def get_train_data(self, trading_date):
-        """DB로부터 데이터를 받아오기
-
-        :param str trading_date: 거래 날짜
-        :return: 데이터
-        :rtype: :class:`pandas.DataFrame`
-        """
-        ## 1. 학습 구간 추출
-        datas = {}
-        for data_id in self.raw_datas:
-            if data_id in ['stock', 'index']:
-                datas[data_id] = self.raw_datas[data_id].loc[self.raw_datas[data_id].index < trading_date]
-            elif data_id == 'info':
-                datas[data_id] = self.raw_datas[data_id].loc[self.raw_datas[data_id].listingdate < trading_date]
-        return datas
+        ## 1. 데이터 선택
+        datas = get_train_data(trading_date, self.raw_datas)
+        return Portfolio({'005930': 1, '069500': 10}, trading_date)

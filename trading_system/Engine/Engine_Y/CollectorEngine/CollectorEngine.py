@@ -17,11 +17,11 @@ class CollectorEngine(BaseCollectorEngine):
         ## 1. 상장된 종목들의 일데이터를 가져오기
         # TODO: country = 'us'
         for country in ['kr']:
-            self.save_daily(country)
+            self.save_data(country)
 
 
     @L
-    def save_daily(self, country):
+    def save_data(self, country):
         """주가와 지수 데이터 저장하기
 
         :param str country: 국호
@@ -33,7 +33,6 @@ class CollectorEngine(BaseCollectorEngine):
         ## 2. Save index price
         names, symbols = get_indexs(country)
         self.save_index_data(country, names, symbols)
-    @L
     def save_stock_data(self, country, market):
         """[FinanceDataReader](https://financedata.github.io/posts/finance-data-reader-users-guide.html) 참고
         주가 일데이터 받아오고 저장하기
@@ -67,7 +66,6 @@ class CollectorEngine(BaseCollectorEngine):
                 values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
         to_sql(query, df_stock)
-    @L
     def save_index_data(self, country, names, symbols):
         """[FinanceDataReader](https://financedata.github.io/posts/finance-data-reader-users-guide.html) 참고
         지수 일데이터 받아오고 저장하기

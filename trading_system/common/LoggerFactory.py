@@ -37,7 +37,7 @@ class LoggerFactory(metaclass=MetaSingleton):
         """
         def excepthook(*args):
             logger.error('\nUncaught exception:', exc_info=args)
-            exit()
+            exit(1)
 
         generate_dir(PATH.LOG)
 

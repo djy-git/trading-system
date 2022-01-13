@@ -32,6 +32,7 @@ from importlib import import_module
 ## External packages
 import numpy as np
 import pandas as pd
+import cudf
 from tabulate import tabulate
 from dask import delayed, compute
 from dask.diagnostics import ProgressBar
@@ -119,8 +120,8 @@ def str2bool(s):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
-dt2str = lambda dt: dt.strftime('%Y-%m-%d')
-str2dt = lambda s: pd.to_datetime(s).date()
+ts2str = lambda ts: ts.strftime('%Y-%m-%d')
+str2ts = lambda s: pd.Timestamp(s)
 def ini2dict(path, section):
     config = configparser.ConfigParser()
     config.read(path)
