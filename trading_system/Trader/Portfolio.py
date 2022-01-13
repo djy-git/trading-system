@@ -79,7 +79,7 @@ class Portfolio:
         """
         return pd.Timestamp(self.df.index[-1])  # np.datetime -> Timestamp
     def df2dict(self):
-        """포트폴리오 데이터를 dict로 변환
+        """최근 포트폴리오 데이터를 dict로 변환
 
         :return: 포트폴리오 데이터
         :rtype: dict

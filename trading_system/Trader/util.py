@@ -73,12 +73,12 @@ def get_price(data, symbol, date, nearest=False):
         return
 
 
-def plot_metrics(metrics, title, params):
+def plot_metrics(metrics, params, dates=None):
     """평가지표를 그래프로 표현
 
     :param pd.DataFame metrics: 평가지표들
-    :param str title: title
     :param dict params: parameters
+    :param pandas.DatetimeIndex dates: 투자 기간
     """
     ## 1. Prepare data
     metrics = metrics.reset_index()
@@ -126,17 +126,16 @@ def plot_metrics(metrics, title, params):
 
 
     ## 4. Show
+    if dates is None:
+        title = f"{metrics['index'][0]} vs {metrics['index'][1]}"
+    else:
+        title = f"{metrics['index'][0]} vs {metrics['index'][1]} ({ts2str(dates[0])} ~ {ts2str(dates[-1])})"
     fig.suptitle(title, fontsize=20, fontweight='bold')
     fig.tight_layout()
     generate_dir(PATH.RESULT)
-    fig.savefig(join(PATH.RESULT, f"{title}_metric.png"))
+    fig.savefig(join(PATH.RESULT, f"[metric] {title}.png"))
     fig.show()
     plt.close(fig)
-def plot_result_price(trading_result, params):
-    bp = pd.Series(trading_result.benchmark, name=params['BENCHMARK'])
-    tp = pd.Series(trading_result.net_wealth, name=params['ALGORITHM'])
-    compare_prices(bp, tp, params, trading_result.balance, trading_result.stock_wealth)
-
 def compare_prices(p1, p2, params, balances=None, stock_wealths=None):
     """
     Plot price data
@@ -168,26 +167,23 @@ def compare_prices(p1, p2, params, balances=None, stock_wealths=None):
     fig.suptitle(title, fontsize=20, fontweight='bold')
     fig.tight_layout()
     generate_dir(PATH.RESULT)
-    fig.savefig(join(PATH.RESULT, f"{title}_price.png"))
+    fig.savefig(join(PATH.RESULT, f"[price] {title}.png"))
     fig.show()
     plt.close(fig)
-def plot_result_return(trading_result, title, params):
+def compare_returns(r1, r2, params):
     """
     Plot return data
 
-    :param cudf.DataFrame trading_result: 투자 결과
-    :param str title: title
+    :param pd.Series r1: 비교값 1 (benchmark)
+    :param pd.Series r2: 비교값 2 (algorithm)
     :param dict params: Parameters
     """
     ## 1. Prepare data
-    br, tr = trading_result.benchmark_return, trading_result['return']
-    tr.iloc[0] = 0  # nan 처리
-
     data = pd.DataFrame()
-    for label, d in zip((params['BENCHMARK'], params['ALGORITHM']), (br, tr)):
-        data[label] = d
-    min_global = np.min([br, tr])
-    max_global = np.max([br, tr])
+    for name, r in zip((r1.name, r2.name), (r1, r2)):
+        data[name] = r
+    min_global = np.min([r1, r2])
+    max_global = np.max([r1, r2])
     max_abs    = np.max([abs(min_global), abs(max_global)])
 
     ## 2. Plot distribution of return
@@ -205,12 +201,12 @@ def plot_result_return(trading_result, title, params):
     ## 3.2 grid
     ax.grid()
 
-
     ## 4. Show
+    title = f"{r2.name} vs {r1.name} ({ts2str(r1.index[0])} ~ {ts2str(r1.index[-1])})"
     fig.suptitle(title, fontsize=20, fontweight='bold')
     fig.tight_layout()
     generate_dir(PATH.RESULT)
-    fig.savefig(join(PATH.RESULT, f"{title}_return.png"))
+    fig.savefig(join(PATH.RESULT, f"[return] {title}.png"))
     fig.show()
     plt.close(fig)
 

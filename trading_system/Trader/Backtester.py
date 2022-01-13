@@ -67,11 +67,11 @@ class Backtester:
         ## 3. 평가액을 반환
         net_wealths = np.array(net_wealths)
         return pd.DataFrame({
-            'net_wealth': net_wealths, 'return': price2return(net_wealths).values,  # why??
+            'net_wealth': net_wealths, 'net_wealth_return': price2return(net_wealths).values,  # why??
             'benchmark': benchmark_data.close.to_pandas(), 'benchmark_return': price2return(benchmark_data.close.to_pandas()), 'alpha': prices2alpha(net_wealths, benchmark_data.close).to_pandas(),
             'balance': balances, 'stock_wealth': stock_wealths,
             'portfolio': _portfolios
-        }, columns=['net_wealth', 'return', 'benchmark', 'benchmark_return', 'alpha', 'balance', 'stock_wealth', 'portfolio'])
+        })
     def get_benchmark_data(self, symbol):
         """벤치마크 데이터 가져오기
 
@@ -125,9 +125,24 @@ class Backtester:
         :param cudf.DataFrame trading_result: 투자 결과 (시계열)
         :param cudf.DataFrame metrics: 투자 결과 평가지표
         """
-        title = f"{self.params['ALGORITHM']} vs {self.params['BENCHMARK']} ({ts2str(trading_result.index[0])} ~ {ts2str(trading_result.index[-1])})"
-
         generate_dir(PATH.RESULT)
-        plot_metrics(metrics, title, self.params)
-        plot_result_price(trading_result, self.params)
-        plot_result_return(trading_result, title, self.params)
+        plot_metrics(metrics, self.params, trading_result.index)
+        self.plot_result_price(trading_result)
+        self.plot_result_return(trading_result)
+    def plot_result_price(self, trading_result):
+        """Price에 대한 결과 그래프를 출력
+        
+        :param pandas.DataFrame trading_result: 투자 결과
+        """
+        bp = pd.Series(trading_result.benchmark, name=self.params['BENCHMARK'])
+        tp = pd.Series(trading_result.net_wealth, name=self.params['ALGORITHM'])
+        compare_prices(bp, tp, self.params, trading_result.balance, trading_result.stock_wealth)
+    def plot_result_return(self, trading_result):
+        """
+        Plot return data
+
+        :param cudf.DataFrame trading_result: 투자 결과
+        """
+        br = pd.Series(trading_result.benchmark_return, name=self.params['BENCHMARK'])
+        tr = pd.Series(trading_result.net_wealth_return, name=self.params['ALGORITHM'])
+        compare_returns(br, tr, self.params)
