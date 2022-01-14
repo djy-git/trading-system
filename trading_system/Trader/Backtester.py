@@ -141,7 +141,7 @@ class Backtester:
         """
         Plot return data
 
-        :param cudf.DataFrame trading_result: 투자 결과
+        :param pandas.DataFrame trading_result: 투자 결과
         """
         br = pd.Series(trading_result.benchmark_return, name=self.params['BENCHMARK'])
         tr = pd.Series(trading_result.net_wealth_return, name=self.params['ALGORITHM'])

@@ -76,7 +76,7 @@ def get_price(data, symbol, date, nearest=False):
 def plot_metrics(metrics, params, dates=None):
     """평가지표를 그래프로 표현
 
-    :param pd.DataFame metrics: 평가지표들
+    :param pandas.DataFame metrics: 평가지표들
     :param dict params: parameters
     :param pandas.Index dates: 투자 기간
     """
