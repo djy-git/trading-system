@@ -72,6 +72,7 @@ def get_price(data, symbol, date, nearest=False):
         LOGGER.info(f"{date}에 {symbol} 값이 존재하지 않음")
         return
 
+
 def plot_metrics(metrics, params, dates=None):
     """평가지표를 그래프로 표현
 
@@ -156,7 +157,7 @@ def compare_prices(p1, p2, params, balances=None, stock_wealths=None):
         plot_composition(p1.index, balances, stock_wealths, params, ax_c, fig)
 
     ## 2. Show
-    title = f"{p2.name} vs {p1.name} ({ts2str(p1.index[0])} ~ {ts2str(p1.index[-1])})"
+    title = f"{p1.name} vs {p2.name} ({ts2str(p1.index[0])} ~ {ts2str(p1.index[-1])})"
     fig.suptitle(title, fontsize=20, fontweight='bold')
     fig.tight_layout()
     generate_dir(PATH.RESULT)
@@ -195,7 +196,7 @@ def compare_returns(r1, r2, params):
     ax.grid()
 
     ## 4. Show
-    title = f"{r2.name} vs {r1.name} ({ts2str(r1.index[0])} ~ {ts2str(r1.index[-1])})"
+    title = f"{r1.name} vs {r2.name} ({ts2str(r1.index[0])} ~ {ts2str(r1.index[-1])})"
     fig.suptitle(title, fontsize=20, fontweight='bold')
     fig.tight_layout()
     generate_dir(PATH.RESULT)
@@ -213,8 +214,8 @@ def plot_prices(p1, p2=None, params=None, ax=None, fig=None):
     :param matplotlib.figure.Figure fig: figure, default=None
     """
     def plot_price(norm_p, ax, plot_params):
-        ax.axhline(1, color='k', linestyle='--')
         sns.lineplot(data=norm_p, ax=ax, linewidth=2, label=norm_p.name, **plot_params)
+        ax.axhline(1, color='k', linestyle='--')
     ## 1. Prepare data
     if ax is None and fig is None:
         new_fig = True
@@ -252,8 +253,7 @@ def plot_prices(p1, p2=None, params=None, ax=None, fig=None):
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%y-%m'))
         ax.xaxis.set_minor_locator(mdates.MonthLocator(bymonth=[3, 5, 7, 9, 11]))
         ax.xaxis.set_minor_formatter(mdates.DateFormatter('%m'))
-        ax.set_xlim(norm_p.index[0], norm_p.index[-1])
-        ax.set_xmargin(0.05)
+        # ax.set_xlim(norm_p.index[0].strftime("%Y-%m-01"), norm_p.index[-1])
         ax.set_xlabel(None)  # date is 명백
 
         ## 3.3 grid
@@ -283,8 +283,8 @@ def plot_ratio(ratios, params, ax=None, fig=None):
 
 
     ## 2. Plot
-    ax.axhline(1, color='k', linestyle='--')
     sns.lineplot(data=ratios, ax=ax, linewidth=2, label='ratio')
+    ax.axhline(1, color='k', linestyle='--')
 
 
     ## 3. Options
@@ -304,8 +304,7 @@ def plot_ratio(ratios, params, ax=None, fig=None):
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%y-%m'))
     ax.xaxis.set_minor_locator(mdates.MonthLocator(bymonth=[3, 5, 7, 9, 11]))
     ax.xaxis.set_minor_formatter(mdates.DateFormatter('%m'))
-    ax.set_xlim(ratios.index[0], ratios.index[-1])
-    ax.set_xmargin(0.05)
+    # ax.set_xlim(ratios.index[0].strftime("%Y-%m-01"), ratios.index[-1])
     ax.set_xlabel(None)  # date is 명백
 
     ## 3.3 grid
@@ -346,8 +345,6 @@ def plot_composition(dates, balances, stock_wealths, params, ax=None, fig=None):
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%y-%m'))
     ax.xaxis.set_minor_locator(mdates.MonthLocator(bymonth=[3, 5, 7, 9, 11]))
     ax.xaxis.set_minor_formatter(mdates.DateFormatter('%m'))
-    ax.set_xlim(dates[0], dates[-1])
-    ax.set_xmargin(0.05)
     ax.set_xlabel(None)  # date is 명백
 
     ## 3.3 grid
