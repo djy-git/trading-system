@@ -12,9 +12,11 @@ class Portfolio:
         2019-01-01 | '005930' | 5
     :param Timestamp date: 투자 날짜
     :ivar pandas.DataFrame df: 포트폴리오 데이터
+    :ivar Timestamp latest_date: 최신 투자 날짜
     """
     def __init__(self, dic=None, date=None):
-        self.df = self.generate_df(dic, date)
+        self.df          = self.generate_df(dic, date)
+        self.latest_date = date
     def __repr__(self):
         """포트폴리오 정보를 문자열로 반환
 
@@ -31,11 +33,10 @@ class Portfolio:
         :return df: 포트폴리오 데이터
         :rtype: pandas.DataFrame
         """
-        if dic is None:
+        if dic is None or len(dic) == 0:
             df = pd.DataFrame(columns=['symbol', 'num'], index=pd.DatetimeIndex([], name='date'))
         else:
             assert isinstance(dic, dict), "df should be dict with {symbol: num}"
-            assert len(dic) > 0, "new_data가 비어있습니다."
             assert all([num >= 0 for num in dic.values()]), "공매도 비허용"
             df = pd.DataFrame({'symbol': dic.keys(), 'num': dic.values()}, columns=['symbol', 'num'], index=pd.DatetimeIndex(len(dic) * [date], name='date'))
         df.symbol = df.symbol.astype(str)
@@ -48,8 +49,8 @@ class Portfolio:
         :param dict new_dic: 추가될 포트폴리오 객체
         :param str new_date: 추가될 날짜
         """
-        self.df = pd.concat([self.df, self.generate_df(new_dic, new_date)])
-
+        self.df          = pd.concat([self.df, self.generate_df(new_dic, new_date)])
+        self.latest_date = new_date
     def get_data_by_date(self, date):
         """특정 날짜의 포트폴리오 정보를 반환
 
@@ -58,22 +59,16 @@ class Portfolio:
         :rtype: pandas.DataFrame
         """
         return self.df[self.df.index == date]
-    def get_latest_date(self):
-        """가장 최근 포트폴리오의 날짜를 반환
-
-        :return: 가장 최근 포트폴리오의 날짜
-        :rtype: Timestamp
-        """
-        return pd.Timestamp(self.df.index[-1])  # np.datetime -> Timestamp
     def get_holding_ser(self):
         """최근 날짜의 포트폴리오 정보를 반환
 
         :return: 최근 날짜의 포트폴리오 정보
         :rtype: pandas.Series
         """
-        if len(self.df) > 0:
-            latest_date = self.get_latest_date()
-            holding_df  = pd.DataFrame(self.df.loc[latest_date]).T
-            return pd.Series({symbol: num for symbol, num in zip(holding_df.symbol, holding_df.num)}, name=latest_date)
-        else:
+        if len(self.df) == 0:
             return pd.Series()
+
+        holding_df = self.df.loc[self.latest_date]
+        if isinstance(holding_df, pd.Series):
+            holding_df = pd.DataFrame(holding_df).T
+        return pd.Series({symbol: num for symbol, num in zip(holding_df.symbol, holding_df.num)}, name=self.latest_date)

@@ -59,15 +59,15 @@ def get_price(data, symbol, date, nearest=False):
     :rtype: float|None
     """
     try:
-        data = data.loc[date]
-        return data[data.symbol == symbol].close[0]
+        data_at_date = data.loc[date]
+        return data_at_date[data_at_date.symbol == symbol].close[0]
     except:
         pass
 
     ## Time-consuming!
     if nearest:
-        data = data.loc[data.index <= date]
-        return data[data.symbol == symbol].iloc[-1].close
+        data_before_date = data.loc[data.index <= date]
+        return data_before_date[data_before_date.symbol == symbol].iloc[-1].close[0]
     else:
         LOGGER.info(f"{date}에 {symbol} 값이 존재하지 않음")
         return

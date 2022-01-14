@@ -35,7 +35,7 @@ class Client:
         :param Portfolio portfolio: 투자 포트폴리오
         """
         ## 1. 투자 날짜, 주식 평가액 갱신
-        self.updating_date = portfolio.get_latest_date()
+        self.updating_date = portfolio.latest_date
         self.stock_wealth  = 0
 
         ## 2. 매수, 매도 판단
@@ -60,15 +60,19 @@ class Client:
             if price := get_price(self.raw_datas['stock'], symbol, self.updating_date):
                 price_sell       = num * price
                 transaction_cost = price_sell * (TAX_RATE_KR + FEE_RATE_KR)
-                if (transaction_cost <= self.balance) and ((num_hold := port_dict_hold.get(symbol, 0) - num) >= 0):
-                    ## Success case
-                    if num_hold > 0:
+                if transaction_cost <= self.balance:
+                    if (num_hold := port_dict_hold.get(symbol, 0) - num) > 0:
+                        ## Success case
                         self.add_portfolio({symbol: num_hold}, self.updating_date, transaction_cost, price_sell=price_sell)
+                        continue
+                    else:
+                        ## Failure case 1
+                        msg_fail = f"보유 주식 수 부족 (보유 주식 수: {port_dict_hold.get(symbol, 0)}개, 매도 주식 수: {num})"
                 else:
-                    ## Failure case 1
-                    msg_fail = f"보유 주식 수 부족 (보유 주식 수: {port_dict_hold.get(symbol, 0)}개, 매도 주식 수: {num})"
+                    ## Failure case 2
+                    msg_fail = f"잔고 부족 (잔고: {self.balance:,.0f}, 거래비용: {transaction_cost:,.0f})"
             else:
-                ## Failure case 2
+                ## Failure case 3
                 msg_fail = "거래 데이터 없음"
 
             ## Failure case
@@ -91,7 +95,7 @@ class Client:
                     continue
                 else:
                     ## Failure case 1
-                    msg_fail = f"잔고 부족 (잔고: {self.balance:,.0f}, 가격: {price_buy:,.0f} = {num:,d}주 x {price:,.0f})"
+                    msg_fail = f"잔고 부족 (잔고: {self.balance:,.0f}, 가격: {price_buy:,.0f} = {num:,d}주 x {price:,.0f}, 거래비용: {transaction_cost:,.0f})"
             else:
                 ## Failure case 2
                 msg_fail = "거래 데이터 없음"
@@ -121,7 +125,7 @@ class Client:
         """
         ## 1. 포트폴리오 추가
         self.portfolio.add(dic, date)
-        
+
         ## 2. 순자산 갱신
         if transaction_cost is not None:
             ## 2.1 거래 발생
@@ -133,5 +137,5 @@ class Client:
 
         ## 2.2 순자산 갱신
         for symbol, num in dic.items():
-            self.stock_wealth += num * get_price(self.raw_datas['stock'], symbol, date)
+            self.stock_wealth += num * get_price(self.raw_datas['stock'], symbol, date, nearest=True)
         self.net_wealth = self.balance + self.stock_wealth

@@ -38,13 +38,21 @@ def get_indexs(country):
     else:
         raise ValueError(country)
     return names, symbols
-def symbol2name(symbol):
+def symbol2name(symbol, stock_info=None):
     """종목코드를 이름으로 변환
 
     :param str symbol: 종목코드
+    :param cudf.DataFrame stock_info: 종목정보 데이터, default=None
     :return: 종목이름
     :rtype: str
     """
+    ## 1. stock_info 사용
+    if stock_info is not None:
+        try:
+            return stock_info[stock_info.symbol == symbol].name.iloc[0]
+        except:
+            pass
+    
     ## 1. KRX
     for get_name in [kstock.get_market_ticker_name, kstock.get_index_ticker_name, kstock.get_etf_ticker_name, kstock.get_etn_ticker_name, kstock.get_elw_ticker_name]:
         try:
