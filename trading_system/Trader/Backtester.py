@@ -11,7 +11,7 @@ class Backtester:
     """
     def __init__(self, params):
         self.params    = params
-        self.raw_datas = get_raw_datas()
+        self.raw_datas = get_raw_datas(self.params['START_DATE'], self.params['END_DATE'])
         self.client    = Client(self.params, self.raw_datas)
         self.engines   = self.load_engines()
 
@@ -42,6 +42,7 @@ class Backtester:
         stock_wealths = [self.client.stock_wealth]
         _portfolios   = [str({})]
 
+
         ## 2. 시간에 따라 투자 진행
         for date in benchmark_data.index.to_pandas()[1:]:
             ## 2.1 각 엔진 별 포트폴리오 선택
@@ -64,14 +65,14 @@ class Backtester:
             msg += f"\t\t 포트폴리오: {self.client.portfolio}"
             LOGGER.info(msg)
 
+
         ## 3. 평가액을 반환
         net_wealths = np.array(net_wealths)
         return pd.DataFrame({
             'net_wealth': net_wealths, 'net_wealth_return': price2return(net_wealths).values,  # why??
             'benchmark': benchmark_data.close.to_pandas(), 'benchmark_return': price2return(benchmark_data.close.to_pandas()), 'alpha': prices2alpha(net_wealths, benchmark_data.close).to_pandas(),
             'balance': balances, 'stock_wealth': stock_wealths,
-            'portfolio': _portfolios
-        })
+            'portfolio': _portfolios}, index=benchmark_data.index.to_pandas())
     def get_benchmark_data(self, symbol):
         """벤치마크 데이터 가져오기
 

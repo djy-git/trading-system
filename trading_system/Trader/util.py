@@ -2,9 +2,11 @@ from common import *
 
 
 @L
-def get_raw_datas():
+def get_raw_datas(start_date=None, end_date=None):
     """Cache된 file 혹은 DB에서 받아오기
 
+    :param str start_date: 시작 날짜
+    :param str end_date: 끝 날짜
     :return: raw data
     :rtype: dict
     """
@@ -33,7 +35,7 @@ def get_raw_datas():
         elif data_id == 'info':
             data = raw_data
             for col in ('listingdate', 'update_date'):
-                data[col] = pd.to_datetime(data[col].to_pandas())
+                data[col] = pd.to_datetime(data[col].values_host)
         else:
             raise ValueError(data_id)
 
@@ -48,6 +50,13 @@ def get_raw_datas():
     common_indexs  = datas['stock'].index.unique().to_pandas().intersection(datas['index'].index.unique().to_pandas())
     datas['stock'] = datas['stock'].loc[common_indexs]
     datas['index'] = datas['index'].loc[common_indexs]
+
+    if start_date is not None and end_date is not None:
+        ## 3. 데이터 선택
+        start_date, end_date = str2ts(start_date), str2ts(end_date)
+        datas['stock'] = datas['stock'][(start_date <= datas['stock'].index) & (datas['stock'].index <= end_date)]
+        datas['index'] = datas['index'][(start_date <= datas['index'].index) & (datas['index'].index <= end_date)]
+        datas['info']  = datas['info'][datas['info'].listingdate.notnull() & (datas['info'].listingdate <= end_date)]
     return datas
 def get_price(data, symbol, date, nearest=False):
     """주식의 가격을 가져옴
@@ -71,6 +80,24 @@ def get_price(data, symbol, date, nearest=False):
     else:
         LOGGER.info(f"{date}에 {symbol} 값이 존재하지 않음")
         return
+def select_datas(trading_date, raw_datas):
+    """학습 데이터 선택
+
+    :param str trading_date: 거래 날짜
+    :param dict raw_datas: 전체 구간에 대한 데이터
+    :return: 현재, 미래 구간이 제외된 학습 데이터
+    :rtype: dict
+    """
+    ## 1. 학습 구간 추출
+    datas = {}
+    for data_id, data in raw_datas.items():
+        if data_id in ['stock', 'index']:
+            datas[data_id] = data.loc[data.index < trading_date]
+        elif data_id == 'info':
+            datas[data_id] = data.loc[data.listingdate.notnull() & (data.listingdate < trading_date)]
+        else:
+            raise ValueError(data_id)
+    return datas
 
 
 def plot_metrics(metrics, params, dates=None):

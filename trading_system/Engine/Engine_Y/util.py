@@ -138,23 +138,3 @@ def download_stock_info(market):
     df_info.columns = df_info.columns.str.lower()
     df_info['update_date'] = pd.to_datetime(datetime.now().strftime("%Y-%m-%d"))
     return df_info
-
-
-def get_train_data(trading_date, raw_datas):
-    """학습 데이터 선택
-
-    :param str trading_date: 거래 날짜
-    :param dict raw_datas: 전체 구간에 대한 데이터
-    :return: 현재, 미래 구간이 제외된 학습 데이터
-    :rtype: dict
-    """
-    ## 1. 학습 구간 추출
-    datas = {}
-    for data_id, data in raw_datas.items():
-        if data_id in ['stock', 'index']:
-            datas[data_id] = data.loc[data.index < trading_date]
-        elif data_id == 'info':
-            datas[data_id] = data.loc[data.listingdate.notnull() & (data.listingdate < trading_date)]
-        else:
-            raise ValueError(data_id)
-    return datas

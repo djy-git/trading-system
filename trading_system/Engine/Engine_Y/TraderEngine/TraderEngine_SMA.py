@@ -11,7 +11,7 @@ class TraderEngine_SMA(BaseTraderEngine):
     """
     def __init__(self, params, client):
         super().__init__(params, client)
-        self.raw_datas = get_raw_datas()
+        self.raw_datas = get_raw_datas(self.params['START_DATE'], self.params['END_DATE'])
 
     def get_portfolio(self, trading_date):
         """다음 시간의 포트폴리오를 선택
@@ -21,18 +21,16 @@ class TraderEngine_SMA(BaseTraderEngine):
         :rtype: :class:`Trader.Portfolio`
         """
         ## 1. 학습 데이터 선택
-        datas      = get_train_data(trading_date, self.raw_datas)
+        datas      = select_datas(trading_date, self.raw_datas)
         stock_data = datas['stock']
 
-        
         ## 2. 각 종목에 대하여 포지션 결정(long, short)
         dic = {}
-        symbols = stock_data.loc[stock_data.index[-1]].sort_values(by='cap', ascending=False).symbol[:5].to_pandas().values
-        for symbol in symbols:
+        symbols = stock_data.loc[stock_data.index[-1]].sort_values(by='cap', ascending=False).symbol
+        for symbol in [symbols[i] for i in range(5)]:
             cur_data = self.generate_MA(stock_data, symbol)
             if pd.isnull(cur_data['SMA2']):  # 데이터 부족은 패스
                 continue
-            # data.plot(figsize=self.params['FIGSIZE']);  plt.show()
 
             ## 2.1 포지션 결정
             position = 'long' if cur_data['SMA1'] > cur_data['SMA2'] else 'short'
@@ -56,7 +54,6 @@ class TraderEngine_SMA(BaseTraderEngine):
         :rtype: dict
         """
         ## 2. Index ETF(KODEX200) 선택
-        prices = stock_data[stock_data.symbol == symbol]['close'].iloc[-252:]
-        return {'price': prices[-1],
-                'SMA1': prices.rolling(42).mean()[-1],
+        prices = stock_data[stock_data.symbol == symbol].close.iloc[-252:]
+        return {'SMA1': prices.rolling(42).mean()[-1],
                 'SMA2': prices.rolling(252).mean()[-1]}
