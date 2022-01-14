@@ -23,10 +23,9 @@ class Backtester:
         ## 2. 투자 진행
         trading_result = self.trade(benchmark_data)
         metrics        = get_metrics(trading_result.benchmark, trading_result.net_wealth, self.params)
-        metrics_ts     = get_metrics_ts(trading_result.benchmark, trading_result.net_wealth, self.params)
 
         ## 3. 결과 출력
-        self.plot_result(trading_result, metrics, metrics_ts)
+        self.plot_result(trading_result, metrics)
 
     @L
     def trade(self, benchmark_data):
@@ -120,26 +119,24 @@ class Backtester:
             ## ensemble
             raise NotImplementedError
 
-    def plot_result(self, trading_result, metrics, metrics_ts):
+    def plot_result(self, trading_result, metrics):
         """결과 출력
 
         :param pandas.DataFrame trading_result: 투자 결과 (시계열)
         :param pandas.DataFrame metrics: 투자 결과 평가지표
-        :param pandas.DataFrame metrics_ts: 투자 결과 평가지표 (시계열)
         """
         generate_dir(PATH.RESULT)
         plot_metrics(metrics, self.params, trading_result.index)
-        self.plot_result_price(trading_result, metrics_ts)
+        self.plot_result_price(trading_result)
         self.plot_result_return(trading_result)
-    def plot_result_price(self, trading_result, metrics_ts):
+    def plot_result_price(self, trading_result):
         """Price에 대한 결과 그래프를 출력
         
         :param pandas.DataFrame trading_result: 투자 결과
-        :param pandas.DataFrame metrics_ts: 투자 결과 평가지표 (시계열)
         """
         bp = pd.Series(trading_result.benchmark, name=self.params['BENCHMARK'])
         tp = pd.Series(trading_result.net_wealth, name=self.params['ALGORITHM'])
-        compare_prices(bp, tp, self.params, metrics_ts, trading_result.balance, trading_result.stock_wealth)
+        compare_prices(bp, tp, self.params, trading_result.balance, trading_result.stock_wealth)
     def plot_result_return(self, trading_result):
         """
         Plot return data

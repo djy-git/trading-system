@@ -72,13 +72,12 @@ def get_price(data, symbol, date, nearest=False):
         LOGGER.info(f"{date}에 {symbol} 값이 존재하지 않음")
         return
 
-
 def plot_metrics(metrics, params, dates=None):
     """평가지표를 그래프로 표현
 
     :param pd.DataFame metrics: 평가지표들
     :param dict params: parameters
-    :param pandas.DatetimeIndex dates: 투자 기간
+    :param pandas.Index dates: 투자 기간
     """
     ## 1. Prepare data
     metrics = metrics.reset_index()
@@ -149,18 +148,12 @@ def compare_prices(p1, p2, params, balances=None, stock_wealths=None):
     ## 1. Plot line plot
     ## 1.1 Generate figure and axes
     fig = plt.figure(figsize=params['FIGSIZE'])
+    gs = GridSpec(3, 1, height_ratios=[2, 1, 1])
+    ax_p1, ax_r, ax_c = fig.add_subplot(gs[0]), fig.add_subplot(gs[1]), fig.add_subplot(gs[2])
+    plot_prices(p2, p1, params, ax_p1, fig)
+    plot_ratio(prices2alpha(p2, p1), params, ax_r, fig)
     if balances is not None:
-        gs = GridSpec(3, 1, height_ratios=[2, 1, 1])
-        ax_p1, ax_r, ax_c = fig.add_subplot(gs[0]), fig.add_subplot(gs[1]), fig.add_subplot(gs[2])
-        plot_prices(p2, p1, params, ax_p1, fig)
-        plot_ratio(prices2alpha(p2, p1), params, ax_r, fig)
         plot_composition(p1.index, balances, stock_wealths, params, ax_c, fig)
-    else:
-        gs = GridSpec(2, 1, height_ratios=[2, 1])
-        ax_p1, ax_r = fig.add_subplot(gs[0]), fig.add_subplot(gs[1])
-        plot_prices(p2, p1, params, ax_p1, fig)
-        plot_ratio(prices2alpha(p2, p1), params, ax_r, fig)
-
 
     ## 2. Show
     title = f"{p2.name} vs {p1.name} ({ts2str(p1.index[0])} ~ {ts2str(p1.index[-1])})"
@@ -243,7 +236,7 @@ def plot_prices(p1, p2=None, params=None, ax=None, fig=None):
     ymin, ymax = np.min(norm_ps), np.max(norm_ps)
     for ax, norm_p, p in zip(axes, norm_ps, ps):
         ## 3.1 y-axis
-        yticks = np.linspace(ymin, ymax, 10)
+        yticks = np.linspace(ymin, ymax, params['NYTICK'])
         yticks = sorted(np.append(yticks, norm_p[0]))
         if params['COUNTRY'] == 'kr':
             yticklabels = [f"{p[0]*ytick:,.0f}({ytick-1:.2f})" for ytick in yticks]
@@ -298,7 +291,7 @@ def plot_ratio(ratios, params, ax=None, fig=None):
     ymin, ymax = np.min(ratios), np.max(ratios)
 
     ## 3.1 y-axis
-    yticks = np.linspace(ymin, ymax, 10)
+    yticks = np.linspace(ymin, ymax, params['NYTICK'])
     yticks = sorted(np.append(yticks, ratios[0]))
     yticklabels = [f"{ytick:.3f}" for ytick in yticks]
     ax.set_yticks(yticks)

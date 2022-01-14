@@ -22,5 +22,9 @@ class TraderEngine_SMA(BaseTraderEngine):
         :rtype: :class:`Trader.Portfolio`
         """
         ## 1. 데이터 선택
-        datas = get_train_data(trading_date, self.raw_datas)
-        return Portfolio({'005930': 1, '069500': 10}, trading_date)
+        # datas = get_train_data(trading_date, self.raw_datas)
+        holding_df = client.portfolio.get_holding_df()
+        if holding_df.empty:
+            return Portfolio({'005930': 2}, trading_date)
+        else:
+            return Portfolio({'005930': holding_df[holding_df.symbol == '005930'].num[0] + 2}, trading_date)

@@ -1,10 +1,6 @@
 from common.util import *
 
 
-## 연율화 지수
-ANNUALIZATION_FACTOR = 252
-
-
 def get_metrics(price_benchmark, price_algorithm, params):
     """Benchmark 데이터와 투자 결과에 대한 평가지표
 
@@ -52,34 +48,6 @@ def get_metrics(price_benchmark, price_algorithm, params):
             result.loc[name]['std excess return']  = ir_info[2]
 
     return result
-
-def get_metrics_ts(price_benchmark, price_algorithm, params):
-    """Benchmark 데이터와 투자 결과에 대한 평가지표 시계열 계산
-
-    :param pd.Series price_benchmark: 벤치마크 가격
-    :param pd.Series price_algorithm: 알고리즘 가격
-    :param dict params: parameters
-    :return: 평가지표 시계열
-    :rtype: pandas.DataFrame
-    """
-    ## 0. Prepare data
-    ps    = price_benchmark.values, price_algorithm.values
-    rs    = price2return(price_benchmark).values, price2return(price_algorithm).values
-    names = [params['BENCHMARK'], params['ALGORITHM']]
-    dates = price_benchmark.index
-
-    def task(idx, date, ps, rs, names):
-        if idx < 20:
-            emptys = [0, 0]
-            return pd.DataFrame({'name': names, 'Sharpe ratio': emptys, 'VWR': emptys, 'MDD': emptys, 'Information ratio': emptys}, index=2*[date])
-        else:
-            return pd.DataFrame({'name'             : names,
-                                 'Sharpe ratio'     : [get_ratio(r[:idx+1])[0] for r in rs],
-                                 'VWR'              : [get_VWR(p[:idx+1])[0] for p in ps],
-                                 'MDD'              : [get_MDD(p[:idx+1]) for p in ps],
-                                 'Information ratio': [None, get_ratio(rs[1][:idx+1] - rs[0][:idx+1])[0]]}, index=2*[date])
-    tasks  = [delayed(task)(idx, date, ps, rs, names) for idx, date in enumerate(dates)]
-    return pd.concat(exec_parallel(tasks, params['DEBUG']))
 
 @njit
 def get_ratio(returns):

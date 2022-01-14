@@ -44,6 +44,7 @@ parser.add_argument('--BALANCE', type=int, default=10_000_000)
 
 ## 5. 기타 설정
 parser.add_argument('--FIGSIZE', type=tuple, default=(16, 8))
+parser.add_argument('--NYTICK', type=int, default=5)
 
 
 if __name__ == '__main__':
