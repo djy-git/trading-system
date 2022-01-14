@@ -21,12 +21,3 @@ class BaseTraderEngine(metaclass=ABCMeta):
         :param Timestamp trading_date: 시점의 날짜
         """
         pass
-
-    def get_holding_num(self, symbol):
-        """주식 종목 ``symbol``의 현재 보유 개수를 반환
-
-        :param str symbol: 종목코드
-        :return: 보유 개수
-        :rtype: int
-        """
-        return self.client.get(symbol, 0)

@@ -24,11 +24,8 @@ class TraderEngine_SMA(BaseTraderEngine):
         # data = self.generate_data(trading_date, '069500')
         # data.to_pandas().plot(figsize=self.params['FIGSIZE']);  plt.show()
 
-        holding_df = self.client.portfolio.get_holding_df()
-        if holding_df.empty:
-            return Portfolio({'005930': 2}, trading_date)
-        else:
-            return Portfolio({'005930': holding_df[holding_df.symbol == '005930'].num[0] + 2}, trading_date)
+        holding_ser = self.client.portfolio.get_holding_ser()
+        return Portfolio({'005930': holding_ser.get('005930', 0)+2}, trading_date)
 
 
 
