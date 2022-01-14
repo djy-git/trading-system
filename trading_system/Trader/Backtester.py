@@ -11,9 +11,10 @@ class Backtester:
     """
     def __init__(self, params):
         self.params    = params
-        self.engines   = self.load_engines()
         self.raw_datas = get_raw_datas()
-        
+        self.client    = Client(self.params, self.raw_datas)
+        self.engines   = self.load_engines()
+
     @L
     def run(self):
         """Backtesting 실행"""
@@ -36,32 +37,31 @@ class Backtester:
         :rtype: pandas.DataFrame
         """
         ## 1. 투자자의 상태를 관리하는 Status 객체 생성
-        client        = Client(self.params, self.raw_datas)
-        net_wealths   = [client.net_wealth]
-        balances      = [client.balance]
-        stock_wealths = [client.stock_wealth]
+        net_wealths   = [self.client.net_wealth]
+        balances      = [self.client.balance]
+        stock_wealths = [self.client.stock_wealth]
         _portfolios   = [str({})]
 
         ## 2. 시간에 따라 투자 진행
         for date in benchmark_data.index.to_pandas()[1:]:
             ## 2.1 각 엔진 별 포트폴리오 선택
-            portfolios = self.get_portfolios(date, client)
+            portfolios = self.get_portfolios(date)
 
             ## 2.2 최종 포트폴리오 선택
             final_portfolio = self.get_final_portfolio(portfolios)
 
             ## 2.3 투자 수행
-            client.trade(final_portfolio)
+            self.client.trade(final_portfolio)
 
             ## 2.4 결과 저장
-            net_wealths.append(client.net_wealth)
-            balances.append(client.balance)
-            stock_wealths.append(client.stock_wealth)
-            _portfolios.append(str(client.portfolio))
+            net_wealths.append(self.client.net_wealth)
+            balances.append(self.client.balance)
+            stock_wealths.append(self.client.stock_wealth)
+            _portfolios.append(str(self.client.portfolio))
 
             ## 2.5 결과 출력
-            msg  = f"{ts2str(client.updating_date)} \t 순자산: {client.net_wealth:,.0f} = {client.balance:,.0f}(잔고) + {client.stock_wealth:,.0f}(주식평가액) \t (수익률: {100 * (client.net_wealth / self.params['BALANCE'] - 1):.2f}%) \n"
-            msg += f"\t\t 포트폴리오: {client.portfolio}"
+            msg  = f"{ts2str(self.client.updating_date)} \t 순자산: {self.client.net_wealth:,.0f} = {self.client.balance:,.0f}(잔고) + {self.client.stock_wealth:,.0f}(주식평가액) \t (수익률: {100 * (self.client.net_wealth / self.params['BALANCE'] - 1):.2f}%) \n"
+            msg += f"\t\t 포트폴리오: {self.client.portfolio}"
             LOGGER.info(msg)
 
         ## 3. 평가액을 반환
@@ -94,10 +94,10 @@ class Backtester:
         :rtype: dict
         """
         return {
-            id: getattr(import_module(f"Engine.Engine_{id}.TraderEngine.TraderEngine"), "TraderEngine")(self.params)
+            id: getattr(import_module(f"Engine.Engine_{id}.TraderEngine.TraderEngine"), "TraderEngine")(self.params, self.client)
             for id in self.params['ENGINE']
         }
-    def get_portfolios(self, trading_date, client):
+    def get_portfolios(self, trading_date):
         """각 :class:`trading_system.TraderEngine` 별 취할 매매 포트폴리오 받아오기
 
         :param Timestamp trading_date: 거래 날짜
@@ -105,7 +105,7 @@ class Backtester:
         :return: 각 :class:`trading_system.TraderEngine` 별 취할 매매 action
         :rtype: dict
         """
-        return {id: eng.get_portfolio(trading_date, client) for id, eng in self.engines.items()}
+        return {id: eng.get_portfolio(trading_date) for id, eng in self.engines.items()}
     def get_final_portfolio(self, portfolios):
         """각 엔진들의 portfolio들로부터 최종 portfolio를 생성
 

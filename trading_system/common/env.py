@@ -57,6 +57,7 @@ from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 plt.rc('font', family='DejaVu Sans')
 plt.rc('axes', unicode_minus=False)  # Remove warning (Glyps 8722)
+sns.set_theme()  # for simple plotting
 
 
 ## Set options
