@@ -1,4 +1,5 @@
 from common import *
+import yfinance as yf
 
 
 @L
@@ -389,3 +390,41 @@ def plot_composition(dates, balances, stock_wealths, params, ax=None, fig=None):
         fig.tight_layout()
         fig.show()
         plt.close(fig)
+
+
+def symbol2name(symbol, stock_info=None):
+    """종목코드를 이름으로 변환
+
+    :param str symbol: 종목코드
+    :param cudf.DataFrame stock_info: 종목정보 데이터, default=None
+    :return: 종목이름
+    :rtype: str
+    """
+    ## 1. stock_info 사용
+    if stock_info is not None:
+        try:
+            return stock_info[stock_info.symbol == symbol].name.iloc[0]
+        except:
+            pass
+
+    ## 1. KRX
+    for get_name in [kstock.get_market_ticker_name, kstock.get_index_ticker_name, kstock.get_etf_ticker_name,
+                     kstock.get_etn_ticker_name, kstock.get_elw_ticker_name]:
+        try:
+            name = get_name(symbol)
+            if isinstance(name, str):
+                return name
+        except:
+            pass
+
+    ## 2. Yahoo finance
+    ## TODO: 너무 느려!
+    ##       해외 종목 호환성
+    for yticker in [f'{symbol}.KS', f'^{symbol}', symbol]:
+        try:
+            return yf.Ticker(yticker).info['longName']
+        except:
+            pass
+
+    ## 변환 실패
+    return symbol

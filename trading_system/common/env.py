@@ -84,7 +84,7 @@ class PATH:
     :cvar str LOG_FILE: Log file의 경로
     :cvar str INI_FILE: 비공개 ini file의 경로
     """
-    ROOT     = abspath(dirname(os.getcwd()))
+    ROOT     = abspath(dirname(dirname(dirname(__file__))))
     SRC      = join(ROOT, 'trading_system')
     INPUT    = join(ROOT, 'input')
     OUTPUT   = join(ROOT, 'output')

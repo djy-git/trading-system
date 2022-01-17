@@ -36,7 +36,7 @@ class Portfolio:
         if dic is None or len(dic) == 0:
             df = pd.DataFrame(columns=['symbol', 'num'], index=pd.DatetimeIndex([], name='date'))
         else:
-            assert isinstance(dic, dict), "df should be dict with {symbol: num}"
+            assert isinstance(dic, dict) or isinstance(dic, pd.Series), "dic should be Mapping with {symbol: num}"
             assert all([num >= 0 for num in dic.values()]), "공매도 비허용"
             df = pd.DataFrame({'symbol': dic.keys(), 'num': dic.values()}, columns=['symbol', 'num'], index=pd.DatetimeIndex(len(dic) * [date], name='date'))
         df.symbol = df.symbol.astype(str)

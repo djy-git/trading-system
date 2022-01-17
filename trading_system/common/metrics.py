@@ -27,7 +27,7 @@ def get_metrics(price_benchmark, price_algorithm, params):
     for name, p, r in zip(names, ps, rs):
         ## 1. Sharpe ratio
         sr_info = get_ratio(r.values)
-        result.loc[name]['sharpe ratio'] = sr_info[0]
+        result.loc[name]['Sharpe ratio'] = sr_info[0]
         result.loc[name]['mean return']  = sr_info[1]
         result.loc[name]['std return']   = sr_info[2]
 
@@ -43,7 +43,7 @@ def get_metrics(price_benchmark, price_algorithm, params):
         ## 4. Information Ratio
         if name == params['ALGORITHM']:
             ir_info = get_ratio((rs[1] - rs[0]).values)
-            result.loc[name]['information ratio']  = ir_info[0]
+            result.loc[name]['Information ratio']  = ir_info[0]
             result.loc[name]['mean excess return'] = ir_info[1]
             result.loc[name]['std excess return']  = ir_info[2]
 
