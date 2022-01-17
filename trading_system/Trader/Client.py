@@ -40,7 +40,7 @@ class Client:
 
         ## 2. 매수, 매도 판단
         # sell(), buy()에서 self.portfolio가 변해도 df2dict()는 deepcopy 객체를 반환
-        port_dict, port_dict_hold = portfolio.get_holding_ser().to_dict(), self.portfolio.get_holding_ser().to_dict()
+        port_dict, port_dict_hold = portfolio.get_holding_dic(), self.portfolio.get_holding_dic()
         port_cnt, port_cnt_hold   = Counter(port_dict), Counter(port_dict_hold)
         port_cnt.subtract(port_cnt_hold)
         port_cnt_diff = port_cnt
@@ -139,3 +139,6 @@ class Client:
         for symbol, num in dic.items():
             self.stock_wealth += num * get_price(self.raw_datas['stock'], symbol, date, nearest=True)
         self.net_wealth = self.balance + self.stock_wealth
+    def get_holding_portfolio(self, trading_date):
+        """보유 포트폴리오 반환"""
+        return Portfolio(self.portfolio.get_holding_dic(), trading_date)

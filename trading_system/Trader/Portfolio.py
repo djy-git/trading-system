@@ -23,7 +23,7 @@ class Portfolio:
         :return: 최근 포트폴리오 정보
         :rtype: str
         """
-        return str(self.get_holding_ser().to_dict())
+        return str(self.get_holding_dic())
 
     def generate_df(self, dic, date):
         """포트폴리오 데이터를 생성
@@ -72,3 +72,6 @@ class Portfolio:
         if isinstance(holding_df, pd.Series):
             holding_df = pd.DataFrame(holding_df).T
         return pd.Series({symbol: num for symbol, num in zip(holding_df.symbol, holding_df.num)}, name=self.latest_date)
+    def get_holding_dic(self):
+        """최근 날짜의 포트폴리오 정보를 반환"""
+        return self.get_holding_ser().to_dict()

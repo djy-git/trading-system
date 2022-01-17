@@ -22,7 +22,7 @@ class TraderEngine_SMA(BaseTraderEngine):
         """
         ## 월요일에만 거래
         if trading_date.weekday() != 0:
-            return Portfolio(self.client.portfolio.get_holding_ser().to_dict(), trading_date)
+            return Portfolio(self.client.portfolio.get_holding_dic(), trading_date)
 
         ## 1. 학습 데이터 선택
         datas      = select_datas(trading_date, self.raw_datas)
