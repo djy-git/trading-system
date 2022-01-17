@@ -81,24 +81,6 @@ def get_price(data, symbol, date, nearest=False):
     else:
         LOGGER.info(f"{date}에 {symbol} 값이 존재하지 않음")
         return
-def select_datas(trading_date, raw_datas):
-    """학습 데이터 선택
-
-    :param str trading_date: 거래 날짜
-    :param dict raw_datas: 전체 구간에 대한 데이터
-    :return: 현재, 미래 구간이 제외된 학습 데이터
-    :rtype: dict
-    """
-    ## 1. 학습 구간 추출
-    datas = {}
-    for data_id, data in raw_datas.items():
-        if data_id in ['stock', 'index']:
-            datas[data_id] = data.loc[data.index < trading_date]
-        elif data_id == 'info':
-            datas[data_id] = data.loc[data.listingdate.notnull() & (data.listingdate < trading_date)]
-        else:
-            raise ValueError(data_id)
-    return datas
 
 
 def plot_metrics(metrics, params, dates=None):

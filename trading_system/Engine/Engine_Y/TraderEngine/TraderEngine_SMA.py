@@ -20,7 +20,7 @@ class TraderEngine_SMA(BaseTraderEngine):
             return Portfolio(self.client.portfolio.get_holding_dic(), trading_date)
 
         ## 1. 학습 데이터 선택
-        datas      = select_datas(trading_date, self.raw_datas)
+        datas      = self.select_datas(trading_date)
         stock_data = datas['stock']
 
         ## 2. 각 종목에 대하여 포지션 결정(long, short)

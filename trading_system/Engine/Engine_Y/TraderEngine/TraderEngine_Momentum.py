@@ -16,4 +16,5 @@ class TraderEngine_Momentum(BaseTraderEngine):
         :return: 포트폴리오
         :rtype: :class:`Trader.Portfolio`
         """
+        datas = self.select_datas(trading_date)
         return Portfolio(self.client.portfolio.get_holding_dic(), trading_date)
