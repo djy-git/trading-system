@@ -27,15 +27,15 @@ class BaseTraderEngine(metaclass=ABCMeta):
         """데이터 선택
 
         :param Timestamp trading_date: 거래 날짜
-        :return: 현재, 미래 구간이 제외된 학습 데이터
+        :return: 미래 구간이 제외된 학습 데이터
         :rtype: dict
         """
         datas = {}
         for data_id, data in self.raw_datas.items():
             if data_id in ['stock', 'index']:
-                datas[data_id] = data.loc[data.index < trading_date]
+                datas[data_id] = data.loc[data.index <= trading_date]
             elif data_id == 'info':
-                datas[data_id] = data.loc[data.listingdate.notnull() & (data.listingdate < trading_date)]
+                datas[data_id] = data.loc[data.listingdate.notnull() & (data.listingdate <= trading_date)]
             else:
                 raise ValueError(data_id)
         return datas
