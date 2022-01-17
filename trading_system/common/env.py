@@ -66,6 +66,7 @@ pd.set_option('display.max_rows', 1000)
 pd.set_option('display.max_columns', 100)
 pd.set_option('display.max_colwidth', 1000)
 pd.set_option('display.width', 1000)
+logging.getLogger('numexpr').setLevel(logging.WARNING)  # Silent mode
 
 
 ## PATH
