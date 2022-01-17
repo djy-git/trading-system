@@ -1,4 +1,4 @@
-from common import *
+from Trader.Portfolio import *
 
 
 class BaseTraderEngine(metaclass=ABCMeta):
@@ -11,8 +11,9 @@ class BaseTraderEngine(metaclass=ABCMeta):
     :ivar Client client: 투자자 상태
     """
     def __init__(self, params, client):
-        self.params = params
-        self.client = client
+        self.params    = params
+        self.client    = client
+        self.raw_datas = get_raw_datas(self.params['START_DATE'], self.params['END_DATE'])
 
     @abstractmethod
     def get_portfolio(self, trading_date):

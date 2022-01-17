@@ -29,7 +29,7 @@ parser.add_argument('--TRADE_END_DATE', type=str, default=datetime.now().strftim
 parser.add_argument('--ENGINE', type=str, default='Y')
                     # description='Options: [Y, J, L, or combining]')  # Y or J or L or YJL
 ## 3.2 각 엔진 세부 설정
-parser.add_argument('--ALGORITHM', type=str, default='SMA')
+parser.add_argument('--ALGORITHM', type=str, default='Momentum')
 
 ## 3.2.1 Y엔진
 ## 3.2.1.1 투자 알고리즘

@@ -1,6 +1,5 @@
 from Engine.BaseTraderEngine import *
 from Engine.Engine_Y.util import *
-from Trader.Portfolio import *
 
 
 class TraderEngine_SMA(BaseTraderEngine):
@@ -9,10 +8,6 @@ class TraderEngine_SMA(BaseTraderEngine):
     :param dict params: parameters
     :ivar dict raw_datas: raw datas
     """
-    def __init__(self, params, client):
-        super().__init__(params, client)
-        self.raw_datas = get_raw_datas(self.params['START_DATE'], self.params['END_DATE'])
-
     def get_portfolio(self, trading_date):
         """다음 시간의 포트폴리오를 선택
 
