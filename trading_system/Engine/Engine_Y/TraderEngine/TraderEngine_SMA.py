@@ -5,8 +5,9 @@ from Engine.Engine_Y.util import *
 class TraderEngine_SMA(BaseTraderEngine):
     """윤동진 엔진
 
-    :param dict params: parameters
-    :ivar dict raw_datas: raw datas
+    :ivar dict params: Parameter
+    :ivar Client client: 투자자 상태
+    :ivar dict raw_datas: 데이터
     """
     def get_portfolio(self, trading_date):
         """다음 시간의 포트폴리오를 선택

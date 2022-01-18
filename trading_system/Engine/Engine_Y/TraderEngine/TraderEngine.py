@@ -13,5 +13,7 @@ class TraderEngine(BaseTraderEngine):
         """다음 시간의 포트폴리오를 선택
         
         :param Timestamp trading_date: 투자 날짜
+        :return: 포트폴리오
+        :rtype: :class:`Trader.Portfolio`
         """
         return self.engine.get_portfolio(trading_date)

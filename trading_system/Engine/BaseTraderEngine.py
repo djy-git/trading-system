@@ -9,6 +9,7 @@ class BaseTraderEngine(metaclass=ABCMeta):
     :param Client client: 투자자 상태
     :ivar dict params: Parameter
     :ivar Client client: 투자자 상태
+    :ivar dict raw_datas: 데이터
     """
     def __init__(self, params, client):
         self.params    = params

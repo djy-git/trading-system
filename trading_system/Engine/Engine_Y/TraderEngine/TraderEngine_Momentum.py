@@ -5,17 +5,11 @@ from Engine.Engine_Y.util import *
 class TraderEngine_Momentum(BaseTraderEngine):
     """윤동진 엔진
 
-    :param dict params: parameters
-    :param Client client: Client 정보
-    :ivar dict raw_datas: raw datas
+    :ivar dict params: Parameter
+    :ivar Client client: 투자자 상태
+    :ivar dict raw_datas: 데이터
     """
     def get_portfolio(self, trading_date):
-        """다음 시간의 포트폴리오를 선택
-
-        :param Timestamp trading_date: 거래 날짜
-        :return: 포트폴리오
-        :rtype: :class:`Trader.Portfolio`
-        """
         ## 1. Parameters
         symbol      = '069500'  # KODEX200
         window      = 5
