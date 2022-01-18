@@ -42,13 +42,13 @@ class LoggerFactory(metaclass=MetaSingleton):
         generate_dir(PATH.LOG)
 
         logger = logging.getLogger()
-        logger.setLevel(logging.DEBUG)
+        logger.setLevel(logging.INFO)
 
         stream_handler = logging.StreamHandler()
         file_handler   = logging.FileHandler(filename=PATH.LOG_FILE)
 
         stream_handler.setLevel(logging.INFO)
-        file_handler.setLevel(logging.DEBUG)
+        file_handler.setLevel(logging.INFO)
 
         ## Instead, use common.Timer.L.print_fn() for log format
         # LOG_FORMAT = "[%(asctime)s] %(filename)s - %(funcName)s() | %(levelname)s | %(message)s"
