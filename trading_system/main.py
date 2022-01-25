@@ -26,19 +26,13 @@ parser.add_argument('--TRADE_END_DATE', type=str, default=datetime.now().strftim
 
 ## 3. 엔진
 ## 3.1 사용할 엔진
-parser.add_argument('--ENGINE', type=str, default='Y')
-                    # description='Options: [Y, J, L, or combining]')  # Y or J or L or YJL
+parser.add_argument('--ENGINE', type=str, default='Y', choices=['Y', 'J', 'L', 'YJL'])
 ## 3.2 각 엔진 세부 설정
 parser.add_argument('--ALGORITHM', type=str, default='Momentum')
 
-## 3.2.1 Y엔진
-## 3.2.1.1 투자 알고리즘
-# parser.add_argument('--Y_ALGORITHM', type=str, default='SMA')
-
 
 ## 4. 거래 설정
-parser.add_argument('--TRADE_METHOD', type=str, default='backtesting')
-                    # description='Options: [backtesting, fake_trading, real_trading]')
+parser.add_argument('--TRADE_METHOD', type=str, default='backtesting', choices=['backtesting', 'fake_trading', 'real_trading'])
 parser.add_argument('--BALANCE', type=int, default=10_000_000)
 
 
