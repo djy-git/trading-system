@@ -1,0 +1,44 @@
+@startuml
+autonumber
+
+mainframe **Command: Invest**
+
+actor "Client(**Jenkins**)" as C
+boundary Interface as I
+entity Investor as IE
+
+box Independent #LightBlue
+entity "InvestorEngine(Y, J, L)" as M
+end box
+
+control DBHandler as DBH
+database Database as DB
+
+C -> I ++: Invest
+    loop #transparent until stop signal from Client
+        I -> IE ++: Run
+            IE -> M ++: Request action
+                M -> DBH ++: Request data
+                    DBH -> DB ++: Request data
+                        return Raw data
+                    return Raw data
+
+                M -> M ++: Preprocess data
+                deactivate
+
+                M -> M ++: Get action
+                deactivate
+
+                return Action
+
+            IE -> IE ++: Process action
+            deactivate
+
+            IE -> IE ++: Invest with action
+            deactivate
+
+            return Result
+    end
+
+    return Trading result
+@enduml
